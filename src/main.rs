@@ -11,6 +11,4 @@ fn main() {
     	running = game.handle_input();
     	game.render();
     }
-
-    game.close();
 }

@@ -96,9 +96,4 @@ impl Game {
             _ => { true }
         }
     }
-
-    /// Closes our instance of a RustBox
-    pub fn close(&self) {
-        self.rb.drop();
-    }
 }
