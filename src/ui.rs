@@ -3,8 +3,8 @@ extern crate rustbox;
 use self::rustbox::{Color, Style, RustBox};
 
 use super::window::Window;
-use super::board;
 use super::board::Board;
+use super::board;
 
 /// A collection of Window structs representing the user interface
 pub struct Ui {

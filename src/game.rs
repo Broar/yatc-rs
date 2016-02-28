@@ -35,13 +35,24 @@ impl Game {
         }
     }
 
+    /// Starts the main game loop
+    pub fn run(&self) {
+        self.setup_ui();
+
+        let mut running = true;
+        while running {
+            running = self.handle_input();
+            self.render();
+        }
+    }
+
     /// Renders the game state and board to the terminal
     pub fn render(&self) {
         self.ui.update_board(&self.rb, &self.board);
         self.rb.present();
     }
 
-    // Render the initial elements of the user interface
+    /// Renders the initial elements of the user interface
     pub fn setup_ui(&self) {
         self.ui.setup(&self.rb);
         self.rb.present();
