@@ -3,6 +3,8 @@ extern crate rustbox;
 use self::rustbox::{Color, Style, RustBox};
 
 use super::window::Window;
+use super::board;
+use super::board::Board;
 
 /// A collection of Window structs representing the user interface
 pub struct Ui {
@@ -43,6 +45,21 @@ impl Ui {
         self.update_score(rb, 0, style, fg, bg);
         self.update_level(rb, 0, style, fg, bg);
         self.update_lines(rb, 0, style, fg, bg);
+    }
+
+    /// Update the board presented on the screen
+    pub fn update_board(&self, rb: &RustBox, board: &Board) {
+        let height = board::HEIGHT - 3;
+        let width = board::WIDTH;
+
+        for y in 0..height {
+            for x in 0..width {
+                match board.blocks[y][x] {
+                    Some(ref block) => self.board.print_char(rb, x + 1, y + 1, rustbox::RB_NORMAL, block.color, Color::Black, '■'),
+                    None => { },
+                }
+            }
+        }
     }
 
     /// Update the score display to a specified value

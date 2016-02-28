@@ -5,3 +5,4 @@ authors = ["Steven Briggs <gshbriggs@gmail.com>"]
 
 [dependencies]
 rustbox = "*"
+rand = "*"

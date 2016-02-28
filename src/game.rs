@@ -8,11 +8,13 @@ use self::rustbox::RustBox;
 use self::rustbox::Key;
 
 use super::ui::Ui;
+use super::board::Board;
 
 /// A controller between the terminal view and game state
 pub struct Game {
     rb: RustBox,
     ui: Ui,
+    board: Board,
     timeout: Duration,
 }
 
@@ -28,13 +30,15 @@ impl Game {
         Game {
             rb: rb,
             ui: Ui::new(),
+            board: Board::new(),
             timeout: Duration::from_millis(100),
         }
     }
 
     /// Renders the game state and board to the terminal
     pub fn render(&self) {
-        // TODO: Implementations of Ui, GameState, and Board required
+        self.ui.update_board(&self.rb, &self.board);
+        self.rb.present();
     }
 
     // Render the initial elements of the user interface
