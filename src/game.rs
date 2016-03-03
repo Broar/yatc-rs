@@ -49,6 +49,7 @@ impl Game {
     /// Renders the game state and board to the terminal
     pub fn render(&self) {
         self.ui.update_board(&self.rb, &self.board);
+        self.ui.update_next_tetromino(&self.rb, self.board.peek_next());
         self.rb.present();
     }
 

@@ -2,50 +2,63 @@ extern crate rand;
 extern crate rustbox;
 
 use self::rustbox::Color;
+use self::rand::{thread_rng, Rng};
 
-use super::tetromino::Block;
+use super::tetromino::{Tetromino, TetrominoType, Rotation, TYPES};
 
 pub const WIDTH: usize = 10;
 pub const HEIGHT: usize = 24;
 
 /// A struct representing a 10x24 Tetris board
 pub struct Board {
-    pub blocks: [[Option<Block>; WIDTH]; HEIGHT],
+    pub blocks: [[Option<Color>; WIDTH]; HEIGHT],
+    seq: [TetrominoType; TYPES],
+    curr: Tetromino,
+    next: usize,
 }
 
 impl Board {
 
     /// Initializes a new Board struct
     pub fn new() -> Self {
-        let mut blocks: [[Option<Block>; WIDTH]; HEIGHT] = [[None; WIDTH]; HEIGHT];
+        let blocks: [[Option<Color>; WIDTH]; HEIGHT] = [[None; WIDTH]; HEIGHT];
 
-        // Temporarily generate random block pieces
-        for i in 0..HEIGHT {
-            for j in 0..WIDTH {
-                if rand::random() {
-                    blocks[i][j] = Some(Block::new(i, j, get_random_color()));
-                }
-            }
-        }
+        // Create a sequence of pieces and shuffle them
+        let mut seq = [
+            TetrominoType::I, 
+            TetrominoType::J, 
+            TetrominoType::L, 
+            TetrominoType::O, 
+            TetrominoType::S, 
+            TetrominoType::T, 
+            TetrominoType::Z
+        ];
+
+        let mut rng = thread_rng();
+        rng.shuffle(&mut seq);
 
         Board {
             blocks: blocks,
+            seq: seq,
+            curr: Tetromino::new(seq[0].clone(), Rotation::Spawn),
+            next: 1
         }
     }
-}
 
-/// Generate a random RustBox color
-fn get_random_color() -> Color {
-    let color = rand::random::<u8>() % 8;
-    match color {
-        0 => Color::Default,
-        1 => Color::Black,
-        2 => Color::Red,
-        3 => Color::Green,
-        4 => Color::Yellow,
-        5 => Color::Blue,
-        6 => Color::Magenta,
-        7 => Color::Cyan,
-        _ => Color::White,
+    /// Peek at the next Tetromino
+    pub fn peek_next(&self) -> Tetromino {
+        Tetromino::new(self.seq[self.next].clone(), Rotation::Spawn)
+    }
+
+    /// Move the next Tetromino from the sequence into play
+    fn next(&mut self) {
+        self.curr = Tetromino::new(self.seq[self.next].clone(), Rotation::Spawn);
+        self.next = self.next + 1;
+
+        // All of the pieces have been drawn, so reshuffle them
+        let mut rng = thread_rng();
+        if self.next % TYPES == 0 {
+            rng.shuffle(&mut self.seq);
+        }
     }
 }
