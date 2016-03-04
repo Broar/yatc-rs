@@ -1,7 +1,7 @@
 extern crate rustbox;
 
-use std::error::Error;
 use std::default::Default;
+use std::error::Error;
 use std::time::Duration;
 
 use self::rustbox::RustBox;
@@ -10,28 +10,23 @@ use self::rustbox::Key;
 use super::ui::Ui;
 use super::board::Board;
 
+const DEFAULT_TIMEOUT: u64 = 100;
+
 /// A controller between the terminal view and game state
-pub struct Game {
-    rb: RustBox,
-    ui: Ui,
+pub struct Game<'a> {
+    rb: &'a RustBox,
+    ui: Ui<'a>,
     board: Board,
-    timeout: Duration,
 }
 
-impl Game {
+impl<'a> Game<'a> {
 
     /// Initializes a new Game struct
-    pub fn new() -> Self {
-        let rb = match RustBox::init(Default::default()) {
-            Result::Ok(v) => v,
-            Result::Err(e) => panic!("{}", e.description()),
-        };
-
+    pub fn new(rb: &'a RustBox) -> Self {
         Game {
             rb: rb,
-            ui: Ui::new(),
+            ui: Ui::new(rb),
             board: Board::new(),
-            timeout: Duration::from_millis(100),
         }
     }
 
@@ -47,24 +42,24 @@ impl Game {
     }
 
     /// Renders the game state and board to the terminal
-    pub fn render(&self) {
-        self.ui.update_board(&self.rb, &self.board);
-        self.ui.update_next_tetromino(&self.rb, self.board.peek_next());
+    fn render(&self) {
+        self.ui.update_board(&self.board);
+        self.ui.update_next_tetromino(self.board.peek_next());
         self.rb.present();
     }
 
     /// Renders the initial elements of the user interface
-    pub fn setup_ui(&self) {
-        self.ui.setup(&self.rb);
+    fn setup_ui(&self) {
+        self.ui.setup();
         self.rb.present();
     }
 
     /// Handles input events from the user, updating the game state if necessary.
     /// Returns false if the user quits; otherwise, true
-    pub fn handle_input(&self) -> bool {
+    fn handle_input(&self) -> bool {
 
         // Peek at events to avoid blocking if there is no input
-        match self.rb.peek_event(self.timeout, false) {
+        match self.rb.peek_event(Duration::from_millis(DEFAULT_TIMEOUT), false) {
             Ok(rustbox::Event::KeyEvent(key)) => {
                 match key {
                     Key::Char('q') => { false },
