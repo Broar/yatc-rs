@@ -1,6 +1,5 @@
 extern crate rustbox;
 
-use std::default::Default;
 use std::error::Error;
 use std::time::Duration;
 
@@ -31,7 +30,7 @@ impl<'a> Game<'a> {
     }
 
     /// Starts the main game loop
-    pub fn run(&self) {
+    pub fn run(&mut self) {
         self.setup_ui();
 
         let mut running = true;
@@ -56,14 +55,35 @@ impl<'a> Game<'a> {
 
     /// Handles input events from the user, updating the game state if necessary.
     /// Returns false if the user quits; otherwise, true
-    fn handle_input(&self) -> bool {
+    fn handle_input(&mut self) -> bool {
 
         // Peek at events to avoid blocking if there is no input
         match self.rb.peek_event(Duration::from_millis(DEFAULT_TIMEOUT), false) {
             Ok(rustbox::Event::KeyEvent(key)) => {
                 match key {
-                    Key::Char('q') => { false },
-                    _ => { true } 
+                    Key::Esc => false,
+
+                    Key::Left => {
+                        self.board.left(); 
+                        true 
+                    },
+
+                    Key::Right => {
+                        self.board.right();
+                        true
+                    },
+
+                    Key::Up => {
+                        self.board.up();
+                        true
+                    },
+
+                    Key::Down => {
+                        self.board.down();
+                        true
+                    }
+
+                    _ => true
                 }
             },
 

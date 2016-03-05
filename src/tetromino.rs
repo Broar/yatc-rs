@@ -29,11 +29,23 @@ pub enum Rotation {
 
 impl Tetromino {
     /// Initializes a new Tetromino struct of a specified type and rotation
-    pub fn new(tetromino_type: TetrominoType, rotation: Rotation) -> Self {
-        TETROMINOS[tetromino_type as usize][rotation as usize].clone()
+    pub fn new(x: usize, y: usize, t_type: TetrominoType, rot: Rotation) -> Self {
+        let mut tetromino = TETROMINOS[t_type as usize][rot as usize].clone();
+        tetromino.set_position(x, y);
+        tetromino
     }
 
-    /// Get a reference to the tetromino's blocks
+    /// Get a reference to the Tetromino's position
+    pub fn position(&self) -> &(usize, usize) {
+        &self.position
+    }
+
+    /// Update the Tetromino's position
+    pub fn set_position(&mut self, x: usize, y: usize) {
+        self.position = (x, y);
+    }
+
+    /// Get a reference to the Tetromino's blocks
     pub fn blocks(&self) -> &[(usize, usize); BLOCKS] {
         &self.blocks
     }

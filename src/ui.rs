@@ -59,7 +59,7 @@ impl<'a> Ui<'a> {
             for x in 0..width {
                 match board.blocks[y][x] {
                     Some(ref color) => self.board.print_char(x + 1, y + 1, DEFAULT_STYLE, color.clone(), DEFAULT_BG, '@'),
-                    None => { },
+                    None => self.board.print_char(x + 1, y + 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, ' '),
                 }
             }
         }
