@@ -1,13 +1,22 @@
 extern crate rustbox;
 
-const BLOCKS: usize = 4;
+const MINOS: usize = 4;
 
 #[derive(Copy, Clone)]
 pub struct Tetromino {
-    position: (isize, isize),
-    blocks: [(usize, usize); BLOCKS],
-    tetro_type: TetrominoType,
-    rot: Rotation,
+    pub minos: [Mino; MINOS],
+}
+
+#[derive(Copy, Clone)]
+pub struct Mino {
+    pub pos: Point,
+    pub tetro_type: TetrominoType,
+}
+
+#[derive(Copy, Clone)]
+pub struct Point {
+    pub x: isize,
+    pub y: isize,
 }
 
 #[derive(Copy, Clone)]
@@ -31,25 +40,28 @@ pub enum Rotation {
 
 impl Tetromino {
     /// Initializes a new Tetromino struct of a specified type and rotation
-    pub fn new(x: isize, y: isize, tetro_type: TetrominoType, rot: Rotation) -> Self {
-        let mut tetromino = TETROMINOS[tetro_type as usize][rot as usize].clone();
-        tetromino.set_position(x, y);
-        tetromino
+    pub fn new(tetro_type: TetrominoType, rot: Rotation) -> Self {
+        TETROMINOS[tetro_type as usize][rot as usize].clone()
     }
+}
 
-    /// Gets a reference to the Tetromino's position
-    pub fn position(&self) -> &(isize, isize) {
-        &self.position
+impl Mino {
+    /// Initializes a new Mino struct
+    pub fn new(x: isize, y: isize, tetro_type: TetrominoType) -> Self {
+        Mino {
+            pos: Point::new(x, y),
+            tetro_type: tetro_type,
+        }
     }
+}
 
-    /// Updates the Tetromino's position
-    pub fn set_position(&mut self, x: isize, y: isize) {
-        self.position = (x, y);
-    }
-
-    /// Gets a reference to the Tetromino's blocks
-    pub fn blocks(&self) -> &[(usize, usize); BLOCKS] {
-        &self.blocks
+impl Point {
+    /// Initializes a new Point struct
+    pub fn new(x: isize, y: isize) -> Self {
+        Point {
+            x: x,
+            y: y,
+        }
     }
 }
 
@@ -59,210 +71,266 @@ const TETROMINOS: [[Tetromino; ROTS]; TYPES] = [I, J, L, O, S, T, Z];
 
 const I: [Tetromino; ROTS] = [
     Tetromino {
-        position: (0, 0),
-        blocks: [(0, 1), (1, 1), (2, 1), (3, 1)],
-        tetro_type: TetrominoType::I,
-        rot: Rotation::Spawn,
+        minos: [
+            Mino { pos: Point { x: 0, y: 1 }, tetro_type: TetrominoType::I, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::I, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::I, },
+            Mino { pos: Point { x: 3, y: 1 }, tetro_type: TetrominoType::I, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(2, 0), (2, 1), (2, 2), (2, 3)],
-        tetro_type: TetrominoType::I,
-        rot: Rotation::Right,
+        minos: [
+            Mino { pos: Point { x: 2, y: 0 }, tetro_type: TetrominoType::I, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::I, },
+            Mino { pos: Point { x: 2, y: 2 }, tetro_type: TetrominoType::I, },
+            Mino { pos: Point { x: 2, y: 3 }, tetro_type: TetrominoType::I, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(0, 2), (1, 2), (2, 2), (3, 2)],
-        tetro_type: TetrominoType::I,
-        rot: Rotation::Rot2,
+        minos: [
+            Mino { pos: Point { x: 0, y: 2 }, tetro_type: TetrominoType::I, },
+            Mino { pos: Point { x: 1, y: 2 }, tetro_type: TetrominoType::I, },
+            Mino { pos: Point { x: 2, y: 2 }, tetro_type: TetrominoType::I, },
+            Mino { pos: Point { x: 3, y: 2 }, tetro_type: TetrominoType::I, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(0, 1), (1, 1), (2, 1), (3, 1)],
-        tetro_type: TetrominoType::I,
-        rot: Rotation::Left,
+        minos: [
+            Mino { pos: Point { x: 0, y: 2 }, tetro_type: TetrominoType::I, },
+            Mino { pos: Point { x: 1, y: 2 }, tetro_type: TetrominoType::I, },
+            Mino { pos: Point { x: 2, y: 2 }, tetro_type: TetrominoType::I, },
+            Mino { pos: Point { x: 3, y: 2 }, tetro_type: TetrominoType::I, },
+        ],
     },
 ];
 
 const J: [Tetromino; ROTS] = [
     Tetromino {
-        position: (0, 0),
-        blocks: [(0, 0), (0, 1), (1, 1), (2, 1)],
-        tetro_type: TetrominoType::J,
-        rot: Rotation::Spawn,
+        minos: [
+            Mino { pos: Point { x: 0, y: 0 }, tetro_type: TetrominoType::J, },
+            Mino { pos: Point { x: 0, y: 1 }, tetro_type: TetrominoType::J, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::J, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::J, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 0), (1, 1), (1, 2), (2, 0)],
-        tetro_type: TetrominoType::J,
-        rot: Rotation::Right,
+        minos: [
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::J, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::J, },
+            Mino { pos: Point { x: 1, y: 2 }, tetro_type: TetrominoType::J, },
+            Mino { pos: Point { x: 2, y: 0 }, tetro_type: TetrominoType::J, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(0, 1), (1, 1), (2, 1), (2, 2)],
-        tetro_type: TetrominoType::J,
-        rot: Rotation::Rot2,
+        minos: [
+            Mino { pos: Point { x: 0, y: 1 }, tetro_type: TetrominoType::J, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::J, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::J, },
+            Mino { pos: Point { x: 2, y: 2 }, tetro_type: TetrominoType::J, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 0), (1, 1), (1, 2), (0, 2)],
-        tetro_type: TetrominoType::J,
-        rot: Rotation::Left,
+        minos: [
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::J, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::J, },
+            Mino { pos: Point { x: 1, y: 2 }, tetro_type: TetrominoType::J, },
+            Mino { pos: Point { x: 0, y: 2 }, tetro_type: TetrominoType::J, },
+        ],
     },
 ];
 
 const L: [Tetromino; ROTS] = [
     Tetromino {
-        position: (0, 0),
-        blocks: [(2, 0), (0, 1), (1, 1), (2, 1)],
-        tetro_type: TetrominoType::L,
-        rot: Rotation::Spawn,
+        minos: [
+            Mino { pos: Point { x: 2, y: 0 }, tetro_type: TetrominoType::L, },
+            Mino { pos: Point { x: 0, y: 1 }, tetro_type: TetrominoType::L, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::L, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::L, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 0), (1, 1), (1, 2), (2, 2)],
-        tetro_type: TetrominoType::L,
-        rot: Rotation::Right,
+        minos: [
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::L, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::L, },
+            Mino { pos: Point { x: 1, y: 2 }, tetro_type: TetrominoType::L, },
+            Mino { pos: Point { x: 2, y: 2 }, tetro_type: TetrominoType::L, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(0, 1), (1, 1), (2, 1), (0, 2)],
-        tetro_type: TetrominoType::L,
-        rot: Rotation::Rot2,
+        minos: [
+            Mino { pos: Point { x: 0, y: 1 }, tetro_type: TetrominoType::L, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::L, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::L, },
+            Mino { pos: Point { x: 0, y: 2 }, tetro_type: TetrominoType::L, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(0, 0), (1, 0), (1, 1), (1, 2)],
-        tetro_type: TetrominoType::L,
-        rot: Rotation::Left,
+        minos: [
+            Mino { pos: Point { x: 0, y: 0 }, tetro_type: TetrominoType::L, },
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::L, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::L, },
+            Mino { pos: Point { x: 1, y: 2 }, tetro_type: TetrominoType::L, },
+        ],
     },
 ];
 
 const O: [Tetromino; ROTS] = [
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 0), (2, 0), (1, 1), (2, 1)],
-        tetro_type: TetrominoType::O,
-        rot: Rotation::Spawn,
+        minos: [
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::O, },
+            Mino { pos: Point { x: 2, y: 0 }, tetro_type: TetrominoType::O, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::O, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::O, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 0), (2, 0), (1, 1), (2, 1)],
-        tetro_type: TetrominoType::O,
-        rot: Rotation::Right,
+        minos: [
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::O, },
+            Mino { pos: Point { x: 2, y: 0 }, tetro_type: TetrominoType::O, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::O, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::O, },            
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 0), (2, 0), (1, 1), (2, 1)],
-        tetro_type: TetrominoType::O,
-        rot: Rotation::Rot2,
+        minos: [
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::O, },
+            Mino { pos: Point { x: 2, y: 0 }, tetro_type: TetrominoType::O, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::O, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::O, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 0), (2, 0), (1, 1), (2, 1)],
-        tetro_type: TetrominoType::O,
-        rot: Rotation::Left,
+        minos: [
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::O, },
+            Mino { pos: Point { x: 2, y: 0 }, tetro_type: TetrominoType::O, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::O, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::O, },
+        ],
     },
 ];
 
 const S: [Tetromino; ROTS] = [
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 0), (2, 0), (0, 1), (1, 1)],
-        tetro_type: TetrominoType::S,
-        rot: Rotation::Spawn,
+        minos: [
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::S, },
+            Mino { pos: Point { x: 2, y: 0 }, tetro_type: TetrominoType::S, },
+            Mino { pos: Point { x: 0, y: 1 }, tetro_type: TetrominoType::S, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::S, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 0), (1, 1), (2, 1), (2, 2)],
-        tetro_type: TetrominoType::S,
-        rot: Rotation::Right,
+        minos: [
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::S, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::S, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::S, },
+            Mino { pos: Point { x: 2, y: 2 }, tetro_type: TetrominoType::S, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 1), (2, 1), (0, 2), (1, 2)],
-        tetro_type: TetrominoType::S,
-        rot: Rotation::Rot2,
+        minos: [
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::S, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::S, },
+            Mino { pos: Point { x: 0, y: 2 }, tetro_type: TetrominoType::S, },
+            Mino { pos: Point { x: 1, y: 2 }, tetro_type: TetrominoType::S, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(0, 0), (0, 1), (1, 1), (1, 2)],
-        tetro_type: TetrominoType::S,
-        rot: Rotation::Left,
+        minos: [
+            Mino { pos: Point { x: 0, y: 0 }, tetro_type: TetrominoType::S, },
+            Mino { pos: Point { x: 0, y: 1 }, tetro_type: TetrominoType::S, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::S, },
+            Mino { pos: Point { x: 1, y: 2 }, tetro_type: TetrominoType::S, },
+        ],
     },
 ];
 
 const T: [Tetromino; ROTS] = [
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 0), (0, 1), (1, 1), (2, 1)],
-        tetro_type: TetrominoType::T,
-        rot: Rotation::Spawn,
+        minos: [
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::T, },
+            Mino { pos: Point { x: 0, y: 1 }, tetro_type: TetrominoType::T, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::T, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::T, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 0), (1, 1), (2, 1), (1, 2)],
-        tetro_type: TetrominoType::T,
-        rot: Rotation::Right,
+        minos: [
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::T, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::T, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::T, },
+            Mino { pos: Point { x: 1, y: 2 }, tetro_type: TetrominoType::T, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(0, 1), (1, 1), (2, 1), (1, 2)],
-        tetro_type: TetrominoType::T,
-        rot: Rotation::Rot2,
+        minos: [
+            Mino { pos: Point { x: 0, y: 1 }, tetro_type: TetrominoType::T, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::T, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::T, },
+            Mino { pos: Point { x: 1, y: 2 }, tetro_type: TetrominoType::T, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 0), (0, 1), (1, 1), (1, 2)],
-        tetro_type: TetrominoType::T,
-        rot: Rotation::Left,
+        minos: [
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::T, },
+            Mino { pos: Point { x: 0, y: 1 }, tetro_type: TetrominoType::T, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::T, },
+            Mino { pos: Point { x: 1, y: 2 }, tetro_type: TetrominoType::T, },
+        ],
     },
 ];
 
 const Z: [Tetromino; ROTS] = [
     Tetromino {
-        position: (0, 0),
-        blocks: [(0, 0), (1, 0), (1, 1), (2, 1)],
-        tetro_type: TetrominoType::Z,
-        rot: Rotation::Spawn,
+        minos: [
+            Mino { pos: Point { x: 0, y: 0 }, tetro_type: TetrominoType::Z, },
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::Z, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::Z, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::Z, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(2, 2), (1, 1), (2, 1), (1, 2)],
-        tetro_type: TetrominoType::Z,
-        rot: Rotation::Right,
+        minos: [
+            Mino { pos: Point { x: 2, y: 2 }, tetro_type: TetrominoType::Z, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::Z, },
+            Mino { pos: Point { x: 2, y: 1 }, tetro_type: TetrominoType::Z, },
+            Mino { pos: Point { x: 1, y: 2 }, tetro_type: TetrominoType::Z, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(0, 1), (1, 1), (1, 2), (2, 2)],
-        tetro_type: TetrominoType::Z,
-        rot: Rotation::Rot2,
+        minos: [
+            Mino { pos: Point { x: 0, y: 1 }, tetro_type: TetrominoType::Z, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::Z, },
+            Mino { pos: Point { x: 1, y: 2 }, tetro_type: TetrominoType::Z, },
+            Mino { pos: Point { x: 2, y: 2 }, tetro_type: TetrominoType::Z, },
+        ],
     },
 
     Tetromino {
-        position: (0, 0),
-        blocks: [(1, 0), (0, 1), (1, 1), (0, 2)],
-        tetro_type: TetrominoType::Z,
-        rot: Rotation::Right,
+        minos: [
+            Mino { pos: Point { x: 1, y: 0 }, tetro_type: TetrominoType::Z, },
+            Mino { pos: Point { x: 0, y: 1 }, tetro_type: TetrominoType::Z, },
+            Mino { pos: Point { x: 1, y: 1 }, tetro_type: TetrominoType::Z, },
+            Mino { pos: Point { x: 0, y: 2 }, tetro_type: TetrominoType::Z, },
+        ],
     },
 ];

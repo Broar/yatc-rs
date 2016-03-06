@@ -81,7 +81,7 @@ impl<'a> Game<'a> {
                     Key::Down => {
                         self.board.down();
                         true
-                    }
+                    },
 
                     _ => true
                 }
