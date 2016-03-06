@@ -4,8 +4,10 @@ const BLOCKS: usize = 4;
 
 #[derive(Copy, Clone)]
 pub struct Tetromino {
-    position: (usize, usize),
+    position: (isize, isize),
     blocks: [(usize, usize); BLOCKS],
+    tetro_type: TetrominoType,
+    rot: Rotation,
 }
 
 #[derive(Copy, Clone)]
@@ -29,23 +31,23 @@ pub enum Rotation {
 
 impl Tetromino {
     /// Initializes a new Tetromino struct of a specified type and rotation
-    pub fn new(x: usize, y: usize, t_type: TetrominoType, rot: Rotation) -> Self {
-        let mut tetromino = TETROMINOS[t_type as usize][rot as usize].clone();
+    pub fn new(x: isize, y: isize, tetro_type: TetrominoType, rot: Rotation) -> Self {
+        let mut tetromino = TETROMINOS[tetro_type as usize][rot as usize].clone();
         tetromino.set_position(x, y);
         tetromino
     }
 
-    /// Get a reference to the Tetromino's position
-    pub fn position(&self) -> &(usize, usize) {
+    /// Gets a reference to the Tetromino's position
+    pub fn position(&self) -> &(isize, isize) {
         &self.position
     }
 
-    /// Update the Tetromino's position
-    pub fn set_position(&mut self, x: usize, y: usize) {
+    /// Updates the Tetromino's position
+    pub fn set_position(&mut self, x: isize, y: isize) {
         self.position = (x, y);
     }
 
-    /// Get a reference to the Tetromino's blocks
+    /// Gets a reference to the Tetromino's blocks
     pub fn blocks(&self) -> &[(usize, usize); BLOCKS] {
         &self.blocks
     }
@@ -58,153 +60,209 @@ const TETROMINOS: [[Tetromino; ROTS]; TYPES] = [I, J, L, O, S, T, Z];
 const I: [Tetromino; ROTS] = [
     Tetromino {
         position: (0, 0),
-        blocks: [(0, 1), (1, 1), (2, 1), (3, 1)]
+        blocks: [(0, 1), (1, 1), (2, 1), (3, 1)],
+        tetro_type: TetrominoType::I,
+        rot: Rotation::Spawn,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(2, 0), (2, 1), (2, 2), (2, 3)]
+        blocks: [(2, 0), (2, 1), (2, 2), (2, 3)],
+        tetro_type: TetrominoType::I,
+        rot: Rotation::Right,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(0, 2), (1, 2), (2, 2), (3, 2)]
+        blocks: [(0, 2), (1, 2), (2, 2), (3, 2)],
+        tetro_type: TetrominoType::I,
+        rot: Rotation::Rot2,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(0, 1), (1, 1), (2, 1), (3, 1)]
+        blocks: [(0, 1), (1, 1), (2, 1), (3, 1)],
+        tetro_type: TetrominoType::I,
+        rot: Rotation::Left,
     },
 ];
 
 const J: [Tetromino; ROTS] = [
     Tetromino {
         position: (0, 0),
-        blocks: [(0, 0), (0, 1), (1, 1), (2, 1)]
+        blocks: [(0, 0), (0, 1), (1, 1), (2, 1)],
+        tetro_type: TetrominoType::J,
+        rot: Rotation::Spawn,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 0), (1, 1), (1, 2), (2, 0)]
+        blocks: [(1, 0), (1, 1), (1, 2), (2, 0)],
+        tetro_type: TetrominoType::J,
+        rot: Rotation::Right,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(0, 1), (1, 1), (2, 1), (2, 2)]
+        blocks: [(0, 1), (1, 1), (2, 1), (2, 2)],
+        tetro_type: TetrominoType::J,
+        rot: Rotation::Rot2,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 0), (1, 1), (1, 2), (0, 2)]
+        blocks: [(1, 0), (1, 1), (1, 2), (0, 2)],
+        tetro_type: TetrominoType::J,
+        rot: Rotation::Left,
     },
 ];
 
 const L: [Tetromino; ROTS] = [
     Tetromino {
         position: (0, 0),
-        blocks: [(2, 0), (0, 1), (1, 1), (2, 1)]
+        blocks: [(2, 0), (0, 1), (1, 1), (2, 1)],
+        tetro_type: TetrominoType::L,
+        rot: Rotation::Spawn,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 0), (1, 1), (1, 2), (2, 2)]
+        blocks: [(1, 0), (1, 1), (1, 2), (2, 2)],
+        tetro_type: TetrominoType::L,
+        rot: Rotation::Right,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(0, 1), (1, 1), (2, 1), (0, 2)]
+        blocks: [(0, 1), (1, 1), (2, 1), (0, 2)],
+        tetro_type: TetrominoType::L,
+        rot: Rotation::Rot2,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(0, 0), (1, 0), (1, 1), (1, 2)]
+        blocks: [(0, 0), (1, 0), (1, 1), (1, 2)],
+        tetro_type: TetrominoType::L,
+        rot: Rotation::Left,
     },
 ];
 
 const O: [Tetromino; ROTS] = [
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 0), (2, 0), (1, 1), (2, 1)]
+        blocks: [(1, 0), (2, 0), (1, 1), (2, 1)],
+        tetro_type: TetrominoType::O,
+        rot: Rotation::Spawn,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 0), (2, 0), (1, 1), (2, 1)]
+        blocks: [(1, 0), (2, 0), (1, 1), (2, 1)],
+        tetro_type: TetrominoType::O,
+        rot: Rotation::Right,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 0), (2, 0), (1, 1), (2, 1)]
+        blocks: [(1, 0), (2, 0), (1, 1), (2, 1)],
+        tetro_type: TetrominoType::O,
+        rot: Rotation::Rot2,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 0), (2, 0), (1, 1), (2, 1)]
+        blocks: [(1, 0), (2, 0), (1, 1), (2, 1)],
+        tetro_type: TetrominoType::O,
+        rot: Rotation::Left,
     },
 ];
 
 const S: [Tetromino; ROTS] = [
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 0), (2, 0), (0, 1), (1, 1)]
+        blocks: [(1, 0), (2, 0), (0, 1), (1, 1)],
+        tetro_type: TetrominoType::S,
+        rot: Rotation::Spawn,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 0), (1, 1), (2, 1), (2, 2)]
+        blocks: [(1, 0), (1, 1), (2, 1), (2, 2)],
+        tetro_type: TetrominoType::S,
+        rot: Rotation::Right,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 1), (2, 1), (0, 2), (1, 2)]
+        blocks: [(1, 1), (2, 1), (0, 2), (1, 2)],
+        tetro_type: TetrominoType::S,
+        rot: Rotation::Rot2,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(0, 0), (0, 1), (1, 1), (1, 2)]
+        blocks: [(0, 0), (0, 1), (1, 1), (1, 2)],
+        tetro_type: TetrominoType::S,
+        rot: Rotation::Left,
     },
 ];
 
 const T: [Tetromino; ROTS] = [
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 0), (0, 1), (1, 1), (2, 1)]
+        blocks: [(1, 0), (0, 1), (1, 1), (2, 1)],
+        tetro_type: TetrominoType::T,
+        rot: Rotation::Spawn,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 0), (1, 1), (2, 1), (1, 2)]
+        blocks: [(1, 0), (1, 1), (2, 1), (1, 2)],
+        tetro_type: TetrominoType::T,
+        rot: Rotation::Right,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(0, 1), (1, 1), (2, 1), (1, 2)]
+        blocks: [(0, 1), (1, 1), (2, 1), (1, 2)],
+        tetro_type: TetrominoType::T,
+        rot: Rotation::Rot2,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 0), (0, 1), (1, 1), (1, 2)]
+        blocks: [(1, 0), (0, 1), (1, 1), (1, 2)],
+        tetro_type: TetrominoType::T,
+        rot: Rotation::Left,
     },
 ];
 
 const Z: [Tetromino; ROTS] = [
     Tetromino {
         position: (0, 0),
-        blocks: [(0, 0), (1, 0), (1, 1), (2, 1)]
+        blocks: [(0, 0), (1, 0), (1, 1), (2, 1)],
+        tetro_type: TetrominoType::Z,
+        rot: Rotation::Spawn,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(2, 2), (1, 1), (2, 1), (1, 2)]
+        blocks: [(2, 2), (1, 1), (2, 1), (1, 2)],
+        tetro_type: TetrominoType::Z,
+        rot: Rotation::Right,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(0, 1), (1, 1), (1, 2), (2, 2)]
+        blocks: [(0, 1), (1, 1), (1, 2), (2, 2)],
+        tetro_type: TetrominoType::Z,
+        rot: Rotation::Rot2,
     },
 
     Tetromino {
         position: (0, 0),
-        blocks: [(1, 0), (0, 1), (1, 1), (0, 2)]
+        blocks: [(1, 0), (0, 1), (1, 1), (0, 2)],
+        tetro_type: TetrominoType::Z,
+        rot: Rotation::Right,
     },
 ];

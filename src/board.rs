@@ -4,13 +4,18 @@ extern crate rustbox;
 use self::rustbox::Color;
 use self::rand::{thread_rng, Rng};
 
-use super::tetromino::{Tetromino, TetrominoType, Rotation, TYPES};
+use super::tetromino::{
+    Rotation, 
+    Tetromino, 
+    TetrominoType, 
+    TYPES
+};
 
 pub const WIDTH: usize = 10;
 pub const HEIGHT: usize = 24;
 
-const SPAWN_X: usize = 3;
-const SPAWN_Y: usize = 0;
+const SPAWN_X: isize = 3;
+const SPAWN_Y: isize = 0;
 
 const LEFT: isize = -1;
 const RIGHT: isize = 1;
@@ -91,8 +96,8 @@ impl Board {
         // is not already occupied. If these conditions aren't satisfied,
         // then the Tetromino cannot be moved
         for &(x, y) in self.curr.blocks().iter() {
-            let new_x = ((tetro_x + x) as isize) + x_offset;
-            let new_y = ((tetro_y + y) as isize) + y_offset;
+            let new_x = tetro_x + (x as isize) + x_offset;
+            let new_y = tetro_y + (y as isize) + y_offset;
 
             // Check that board boundaries are respected
             if new_x >= 0 && new_y >= 0 && (new_x as usize) < WIDTH && (new_y as usize) < HEIGHT {
@@ -105,7 +110,7 @@ impl Board {
                     for &(temp_x, temp_y) in self.curr.blocks().iter() {
 
                         // Only overlapping an active block, so we can still move
-                        if (new_x as usize) == (tetro_x + temp_x) && (new_y as usize) == (tetro_y + temp_y) {
+                        if new_x == (tetro_x + (temp_x as isize)) && new_y == (tetro_y + (temp_y as isize)) {
                             overlaps_active = true;
                             break;
                         }
@@ -129,16 +134,16 @@ impl Board {
         if is_moveable {
             let mut blocks = self.curr.blocks().clone();
 
-            // Rightwards movement requires us to move the blocks in
-            // reverse order. This prevents blocks from being erased
+            // Moving down or right requires us to handle the blocks in
+            // reverse order to prevent blocks from being erased
             match (x_offset, y_offset) {
                 (RIGHT, NEUTRAL) | (NEUTRAL, DOWN) => blocks.reverse(),
                 _ => { }
             }
 
             for &(x, y) in blocks.iter() {
-                let org_x = (tetro_x + x) as usize;
-                let org_y = (tetro_y + y) as usize;
+                let org_x = (tetro_x + (x as isize)) as usize;
+                let org_y = (tetro_y + (y as isize)) as usize;
 
                 // We already checked for negative values in the previous loop,
                 // so we lose no information by casting to a usize 
@@ -150,7 +155,7 @@ impl Board {
             }
 
             // Update origin of the Tetromino to reflect the offset
-            self.curr.set_position((tetro_x as isize + x_offset) as usize, (tetro_y as isize + y_offset) as usize);
+            self.curr.set_position(tetro_x + x_offset, tetro_y + y_offset);
         }
     }
 
@@ -174,7 +179,7 @@ impl Board {
         // Add the new blocks to the board
         for &(x, y) in self.curr.blocks().iter() {
             let &(tetro_x, tetro_y) = self.curr.position();
-            self.blocks[tetro_y + y][tetro_x + x] = Some(Color::White);
+            self.blocks[(tetro_y + (y as isize)) as usize][(tetro_x + (x as isize)) as usize] = Some(Color::White);
         }
     }
 }
