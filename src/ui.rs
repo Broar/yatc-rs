@@ -4,7 +4,7 @@ use self::rustbox::{Color, Style, RustBox};
 
 use super::board::Board;
 use super::board;
-use super::tetromino::{Mino, Tetromino, TetrominoType};
+use super::tetromino::{Tetromino, TetrominoType};
 use super::window::Window;
 
 // Default values for styling terminal output
@@ -79,8 +79,8 @@ impl<'a> Ui<'a> {
     }
 
     /// Get the print style for a Mino
-    fn get_style(&self, mino: &Mino) -> (char, Color) {
-        match mino.tetro_type {
+    fn get_style(&self, mino: &TetrominoType) -> (char, Color) {
+        match *mino {
             TetrominoType::I => I,
             TetrominoType::J => J,
             TetrominoType::L => L,
@@ -94,9 +94,8 @@ impl<'a> Ui<'a> {
     /// Update the next tetromino to be put into play
     pub fn update_next_tetromino(&self, tetromino: Tetromino) {
         for &mino in tetromino.minos.iter() {
-            let (x, y) = (mino.pos.x as usize, mino.pos.y as usize);
-            let (rune, color) = self.get_style(&mino);
-            self.next_piece.print_char((x + 4) as usize, (y + 2) as usize, DEFAULT_STYLE, color, DEFAULT_BG, rune);
+            let (rune, color) = self.get_style(&tetromino.tetro_type);
+            self.next_piece.print_char((mino.x + 4) as usize, (mino.y + 2) as usize, DEFAULT_STYLE, color, DEFAULT_BG, rune);
         }
     }
 

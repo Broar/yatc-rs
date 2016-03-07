@@ -7,6 +7,7 @@ use std::error::Error;
 mod board;
 mod game;
 mod tetromino;
+mod srs;
 mod ui;
 mod window;
 

@@ -1,11 +1,8 @@
 extern crate rand;
-extern crate rustbox;
 
-use self::rustbox::Color;
 use self::rand::{thread_rng, Rng};
 
 use super::tetromino::{
-    Mino,
     Point,
     Rotation, 
     Tetromino, 
@@ -16,8 +13,7 @@ use super::tetromino::{
 pub const WIDTH: usize = 10;
 pub const HEIGHT: usize = 24;
 
-const SPAWN_X: isize = 3;
-const SPAWN_Y: isize = 0;
+const SPAWN: Point = Point { x: 3, y: 0 };
 
 const LEFT: isize = -1;
 const RIGHT: isize = 1;
@@ -27,15 +23,9 @@ const NEUTRAL: isize = 0;
 
 /// A struct representing a 10x24 Tetris board
 pub struct Board {
-    pub field: [[Option<Mino>; WIDTH]; HEIGHT],
+    pub field: [[Option<TetrominoType>; WIDTH]; HEIGHT],
     seq: [TetrominoType; TYPES],
-
-    // Info about the current Tetromino
     curr: Tetromino,
-    curr_pos: Point,
-    curr_type: TetrominoType,
-    curr_rot: Rotation,
-
     next: usize,
 }
 
@@ -43,7 +33,7 @@ impl Board {
 
     /// Initializes a new Board struct
     pub fn new() -> Self {
-        let field: [[Option<Mino>; WIDTH]; HEIGHT] = [[None; WIDTH]; HEIGHT];
+        let field: [[Option<TetrominoType>; WIDTH]; HEIGHT] = [[None; WIDTH]; HEIGHT];
 
         // Create a sequence of pieces and shuffle them
         let mut seq = [
@@ -53,7 +43,7 @@ impl Board {
             TetrominoType::O, 
             TetrominoType::S, 
             TetrominoType::T, 
-            TetrominoType::Z
+            TetrominoType::Z,
         ];
 
         let mut rng = thread_rng();
@@ -62,12 +52,7 @@ impl Board {
         let mut board = Board {
             field: field,
             seq: seq,
-
-            curr: Tetromino::new(seq[0].clone(), Rotation::Spawn),
-            curr_pos: Point::new(SPAWN_X, SPAWN_Y),
-            curr_type: seq[0].clone(),
-            curr_rot: Rotation::Spawn,
-
+            curr: Tetromino::new(SPAWN, seq[0].clone(), Rotation::Spawn),
             next: 0
         };
 
@@ -97,7 +82,7 @@ impl Board {
 
     /// Moves the current Tetromino down
     pub fn down(&mut self) {
-        self.move_tetromino(Point::new(NEUTRAL, DOWN)) ;
+        self.move_tetromino(Point::new(NEUTRAL, DOWN));
     }
 
     /// Moves the current Tetromino by an (x, y) offset
@@ -108,7 +93,7 @@ impl Board {
         // is not already occupied. If these conditions aren't satisfied,
         // then the Tetromino cannot be moved
         for &mino in self.curr.minos.iter() {
-            let new_pos = Point::new(self.curr_pos.x + mino.pos.x + offset.x, self.curr_pos.y + mino.pos.y + offset.y);
+            let new_pos = Point::new(self.curr.pos.x + mino.x + offset.x, self.curr.pos.y + mino.y + offset.y);
 
             // Check that board boundaries are respected
             if new_pos.x >= 0 && new_pos.y >= 0 && (new_pos.x as usize) < WIDTH && (new_pos.y as usize) < HEIGHT {
@@ -120,7 +105,7 @@ impl Board {
                     for &temp_mino in self.curr.minos.iter() {
 
                         // Only overlapping an active block, so we can still move
-                        if new_pos.x == (self.curr_pos.x + temp_mino.pos.x) && new_pos.y == (self.curr_pos.y + temp_mino.pos.y) {
+                        if new_pos.x == (self.curr.pos.x + temp_mino.x) && new_pos.y == (self.curr.pos.y + temp_mino.y) {
                             overlaps_active = true;
                             break;
                         }
@@ -152,7 +137,7 @@ impl Board {
             }
 
             for &mino in minos.iter() {
-                let org_pos = Point::new(self.curr_pos.x + mino.pos.x, self.curr_pos.y + mino.pos.y);
+                let org_pos = Point::new(self.curr.pos.x + mino.x, self.curr.pos.y + mino.y);
                 let new_pos = Point::new(org_pos.x + offset.x, org_pos.y + offset.y);
 
                 self.field[new_pos.y as usize][new_pos.x as usize] = self.field[org_pos.y as usize][org_pos.x as usize];
@@ -160,22 +145,18 @@ impl Board {
             }
 
             // Update origin of the Tetromino to reflect the offset
-            self.curr_pos = Point::new(self.curr_pos.x + offset.x, self.curr_pos.y + offset.y);
+            self.curr.pos = Point::new(self.curr.pos.x + offset.x, self.curr.pos.y + offset.y);
         }
     }
 
     /// Peeks at the next Tetromino
     pub fn peek_next(&self) -> Tetromino {
-        Tetromino::new(self.seq[self.next].clone(), Rotation::Spawn)
+        Tetromino::new(SPAWN, self.seq[self.next].clone(), Rotation::Spawn)
     }
 
     /// Spawns the next Tetromino in the sequence
     fn spawn(&mut self) {
-        self.curr = Tetromino::new(self.seq[self.next].clone(), Rotation::Spawn);
-        self.curr_pos = Point::new(SPAWN_X, SPAWN_Y);
-        self.curr_type = self.seq[self.next].clone();
-        self.curr_rot = Rotation::Spawn;
-
+        self.curr = Tetromino::new(SPAWN, self.seq[self.next].clone(), Rotation::Spawn);
         self.next = self.next + 1;
 
         // All of the pieces have been picked, so reshuffle them
@@ -187,7 +168,7 @@ impl Board {
 
         // Add the new blocks to the board
         for &mino in self.curr.minos.iter() {
-            self.field[(self.curr_pos.y + mino.pos.y) as usize][(self.curr_pos.x + mino.pos.x) as usize] = Some(mino.clone());
+            self.field[(self.curr.pos.y + mino.y) as usize][(self.curr.pos.x + mino.x) as usize] = Some(self.curr.tetro_type);
         }
     }
 }
