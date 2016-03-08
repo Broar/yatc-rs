@@ -8,6 +8,7 @@ use self::rustbox::Key;
 
 use super::ui::Ui;
 use super::board::Board;
+use super::tetromino::Direction;
 
 const DEFAULT_TIMEOUT: u64 = 100;
 
@@ -82,6 +83,16 @@ impl<'a> Game<'a> {
                         self.board.down();
                         true
                     },
+
+                    Key::Char('z') => {
+                        self.board.rotate(Direction::CounterClockwise);
+                        true
+                    },
+
+                    Key::Char('x') => {
+                        self.board.rotate(Direction::Clockwise);
+                        true
+                    }
 
                     _ => true
                 }

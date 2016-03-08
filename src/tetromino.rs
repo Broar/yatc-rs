@@ -27,12 +27,18 @@ pub enum TetrominoType {
     Z,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash)]
 pub enum Rotation {
     Spawn,
     Right,
     Rot2,
     Left,
+}
+
+#[derive(Copy, Clone)]
+pub enum Direction {
+    Clockwise,
+    CounterClockwise,
 }
 
 impl Tetromino {

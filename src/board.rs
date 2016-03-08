@@ -3,6 +3,7 @@ extern crate rand;
 use self::rand::{thread_rng, Rng};
 
 use super::tetromino::{
+    Direction,
     Point,
     Rotation, 
     Tetromino, 
@@ -147,6 +148,10 @@ impl Board {
             // Update origin of the Tetromino to reflect the offset
             self.curr.pos = Point::new(self.curr.pos.x + offset.x, self.curr.pos.y + offset.y);
         }
+    }
+
+    pub fn rotate(&self, dir: Direction) {
+        // TODO
     }
 
     /// Peeks at the next Tetromino
