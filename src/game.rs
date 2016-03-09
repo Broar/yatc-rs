@@ -43,8 +43,8 @@ impl<'a> Game<'a> {
 
     /// Renders the game state and board to the terminal
     fn render(&self) {
-        self.ui.update_board(&self.board);
-        self.ui.update_next_tetromino(self.board.peek_next());
+        self.ui.print_board(&self.board);
+        self.ui.print_next(self.board.peek_next());
         self.rb.present();
     }
 
@@ -83,16 +83,6 @@ impl<'a> Game<'a> {
                         self.board.down();
                         true
                     },
-
-                    Key::Char('z') => {
-                        self.board.rotate(Direction::CounterClockwise);
-                        true
-                    },
-
-                    Key::Char('x') => {
-                        self.board.rotate(Direction::Clockwise);
-                        true
-                    }
 
                     _ => true
                 }

@@ -2,8 +2,7 @@ extern crate rustbox;
 
 use self::rustbox::{Color, Style, RustBox};
 
-use super::board::Board;
-use super::board;
+use super::board::{Board, HEIGHT, WIDTH};
 use super::tetromino::{Tetromino, TetrominoType};
 use super::window::Window;
 
@@ -35,7 +34,7 @@ impl<'a> Ui<'a> {
     /// Initializes a new Ui struct
     pub fn new(rb: &'a RustBox) -> Self {
         Ui {
-            board: Window::new(0, 0, 11, 22, rb),
+            board: Window::new(0, 0, 11, 21, rb),
             score: Window::new(12, 0, 11, 2, rb),
             level: Window::new(12, 4, 11, 2, rb),
             lines: Window::new(12, 8, 11, 2, rb),
@@ -54,25 +53,27 @@ impl<'a> Ui<'a> {
         self.next_piece.print_borders(DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG);
 
         // Print out the initial values for the player stats
-        self.update_score(0);
-        self.update_level(0);
-        self.update_lines(0);
+        self.print_score(0);
+        self.print_level(0);
+        self.print_lines(0);
     }
 
-    /// Update the board presented on the screen
-    pub fn update_board(&self, board: &Board) {
-        let height = board::HEIGHT - 3;
-        let width = board::WIDTH;
+    /// Print the state of the board
+    pub fn print_board(&self, board: &Board) {
 
-        for y in 0..height {
-            for x in 0..width {
+        // Start at 2 because only 20 of the board's rows should be displayed
+        for y in 2..HEIGHT {
+            for x in 0..WIDTH {
                 match board.field[y][x] {
+
+                    // When printing the board, offset x and y to compensate
+                    // for the Window's borders and showing only 20 rows
                     Some(ref mino) =>  {
                         let (rune, color) = self.get_style(mino);
-                        self.board.print_char(x + 1, y + 1, DEFAULT_STYLE, color, DEFAULT_BG, rune);
+                        self.board.print_char(x + 1, y - 1, DEFAULT_STYLE, color, DEFAULT_BG, rune);
                     }
 
-                    None => self.board.print_char(x + 1, y + 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, ' '),
+                    None => self.board.print_char(x + 1, y - 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, ' '),
                 }
             }
         }
@@ -91,26 +92,26 @@ impl<'a> Ui<'a> {
         }
     }
 
-    /// Update the next tetromino to be put into play
-    pub fn update_next_tetromino(&self, tetromino: Tetromino) {
+    /// Print the next Tetromino
+    pub fn print_next(&self, tetromino: Tetromino) {
         for &mino in tetromino.minos.iter() {
             let (rune, color) = self.get_style(&tetromino.tetro_type);
             self.next_piece.print_char((mino.x + 4) as usize, (mino.y + 2) as usize, DEFAULT_STYLE, color, DEFAULT_BG, rune);
         }
     }
 
-    /// Update the score display
-    pub fn update_score(&self, score: u32) {
+    /// Print the player's score
+    pub fn print_score(&self, score: u32) {
         self.score.print(1, 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, &format!("{:010}", score));
     }
 
-    /// Update the level display
-    pub fn update_level(&self, level: u8) {
+    /// Print the difficulty level
+    pub fn print_level(&self, level: u8) {
         self.level.print(1, 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, &format!("{:}", level));
     }
 
-    /// Update the number of lines cleared
-    pub fn update_lines(&self, lines: u8) {
+    /// Print the number of lines cleared
+    pub fn print_lines(&self, lines: u8) {
         self.lines.print(1, 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, &format!("{:}", lines));
     }
 }

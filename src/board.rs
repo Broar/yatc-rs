@@ -2,6 +2,7 @@ extern crate rand;
 
 use self::rand::{thread_rng, Rng};
 
+use super::srs;
 use super::tetromino::{
     Direction,
     Point,
@@ -12,7 +13,7 @@ use super::tetromino::{
 };
 
 pub const WIDTH: usize = 10;
-pub const HEIGHT: usize = 24;
+pub const HEIGHT: usize = 22;
 
 const SPAWN: Point = Point { x: 3, y: 0 };
 
@@ -22,7 +23,7 @@ const UP: isize = -1;
 const DOWN: isize = 1;
 const NEUTRAL: isize = 0;
 
-/// A struct representing a 10x24 Tetris board
+/// A struct representing a 10x22 Tetris board
 pub struct Board {
     pub field: [[Option<TetrominoType>; WIDTH]; HEIGHT],
     seq: [TetrominoType; TYPES],
@@ -148,10 +149,6 @@ impl Board {
             // Update origin of the Tetromino to reflect the offset
             self.curr.pos = Point::new(self.curr.pos.x + offset.x, self.curr.pos.y + offset.y);
         }
-    }
-
-    pub fn rotate(&self, dir: Direction) {
-        // TODO
     }
 
     /// Peeks at the next Tetromino
