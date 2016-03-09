@@ -84,6 +84,16 @@ impl<'a> Game<'a> {
                         true
                     },
 
+                    Key::Char('z') => {
+                        self.board.rotate(Direction::CounterClockwise);
+                        true
+                    },
+
+                    Key::Char('x') => {
+                        self.board.rotate(Direction::Clockwise);
+                        true
+                    }
+
                     _ => true
                 }
             },

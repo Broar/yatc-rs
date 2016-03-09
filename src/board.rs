@@ -23,9 +23,11 @@ const UP: isize = -1;
 const DOWN: isize = 1;
 const NEUTRAL: isize = 0;
 
+pub type Field = [[Option<TetrominoType>; WIDTH]; HEIGHT];
+
 /// A struct representing a 10x22 Tetris board
 pub struct Board {
-    pub field: [[Option<TetrominoType>; WIDTH]; HEIGHT],
+    pub field: Field,
     seq: [TetrominoType; TYPES],
     curr: Tetromino,
     next: usize,
@@ -35,7 +37,7 @@ impl Board {
 
     /// Initializes a new Board struct
     pub fn new() -> Self {
-        let field: [[Option<TetrominoType>; WIDTH]; HEIGHT] = [[None; WIDTH]; HEIGHT];
+        let field: Field = [[None; WIDTH]; HEIGHT];
 
         // Create a sequence of pieces and shuffle them
         let mut seq = [
@@ -148,6 +150,17 @@ impl Board {
 
             // Update origin of the Tetromino to reflect the offset
             self.curr.pos = Point::new(self.curr.pos.x + offset.x, self.curr.pos.y + offset.y);
+        }
+    }
+
+    pub fn rotate(&mut self, dir: Direction) {
+        match srs::rotate(&self.field, &self.curr, dir) {
+            Some((field, rotated)) => {
+                self.field = field;
+                self.curr = rotated;
+            },
+
+            None => { },
         }
     }
 

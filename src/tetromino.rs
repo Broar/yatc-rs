@@ -106,10 +106,10 @@ const I: [Tetromino; ROTS] = [
 
     Tetromino {
         minos: [
-            Point { x: 0, y: 2 },
+            Point { x: 1, y: 0 },
+            Point { x: 1, y: 1 },
             Point { x: 1, y: 2 },
-            Point { x: 2, y: 2 },
-            Point { x: 3, y: 2 },
+            Point { x: 1, y: 3 },
         ],
 
         pos: Point { x: 0, y: 0 },
@@ -168,7 +168,7 @@ const J: [Tetromino; ROTS] = [
 
         pos: Point { x: 0, y: 0 },
         tetro_type: TetrominoType::J,
-        rot: Rotation::Right,
+        rot: Rotation::Left,
     },
 ];
 
@@ -221,7 +221,7 @@ const L: [Tetromino; ROTS] = [
         ],
 
         pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::J,
+        tetro_type: TetrominoType::L,
         rot: Rotation::Left,
     },
 ];
@@ -330,7 +330,7 @@ const S: [Tetromino; ROTS] = [
 
         pos: Point { x: 0, y: 0 },
         tetro_type: TetrominoType::S,
-        rot: Rotation::Right,
+        rot: Rotation::Left,
     },
 ];
 
@@ -404,7 +404,7 @@ const Z: [Tetromino; ROTS] = [
 
     Tetromino {
         minos: [
-            Point { x: 2, y: 2 },
+            Point { x: 2, y: 0 },
             Point { x: 1, y: 1 },
             Point { x: 2, y: 1 },
             Point { x: 1, y: 2 },
