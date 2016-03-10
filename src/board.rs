@@ -91,68 +91,66 @@ impl Board {
 
     /// Moves the current Tetromino by an (x, y) offset
     fn move_tetromino(&mut self, offset: Point) {
-        let mut is_moveable = true;
-
-        // Check the new position lies within the board and that the space
-        // is not already occupied. If these conditions aren't satisfied,
-        // then the Tetromino cannot be moved
-        for &mino in self.curr.minos.iter() {
-            let new_pos = Point::new(self.curr.pos.x + mino.x + offset.x, self.curr.pos.y + mino.y + offset.y);
-
-            // Check that board boundaries are respected
-            if new_pos.x >= 0 && new_pos.y >= 0 && (new_pos.x as usize) < WIDTH && (new_pos.y as usize) < HEIGHT {
-
-                // Check that overlapping blocks belong to the active Tetromino
-                if self.field[new_pos.y as usize][new_pos.x as usize].is_some() {
-
-                    let mut overlaps_active = false;
-                    for &temp_mino in self.curr.minos.iter() {
-
-                        // Only overlapping an active block, so we can still move
-                        if new_pos.x == (self.curr.pos.x + temp_mino.x) && new_pos.y == (self.curr.pos.y + temp_mino.y) {
-                            overlaps_active = true;
-                            break;
-                        }
-                    }
-
-                    // The overlapping block was not active, so we cannot move
-                    if !overlaps_active {
-                        is_moveable = false;
-                        break;
-                    }
-                }
-            }
-
-            else {
-                is_moveable = false;
-                break;
-            }
-        }
-
-        // Move the Tetromino to the new position
-        if is_moveable {
-            let mut minos = self.curr.minos.clone();
-
-            // Moving down or right requires us to handle the blocks in
-            // reverse order to prevent blocks from being erased
-            match (offset.x, offset.y) {
-                (RIGHT, NEUTRAL) | (NEUTRAL, DOWN) => minos.reverse(),
-                _ => { }
-            }
-
-            for &mino in minos.iter() {
-                let org_pos = Point::new(self.curr.pos.x + mino.x, self.curr.pos.y + mino.y);
-                let new_pos = Point::new(org_pos.x + offset.x, org_pos.y + offset.y);
-
-                self.field[new_pos.y as usize][new_pos.x as usize] = self.field[org_pos.y as usize][org_pos.x as usize];
-                self.field[org_pos.y as usize][org_pos.x as usize] = None;
-            }
-
-            // Update origin of the Tetromino to reflect the offset
-            self.curr.pos = Point::new(self.curr.pos.x + offset.x, self.curr.pos.y + offset.y);
+        if self.is_moveable(&offset) {
+            self.do_move(&offset);
         }
     }
 
+    /// Determines if an offset to the current Tetromino is possible or not
+    fn is_moveable(&self, offset: &Point) -> bool {
+        for &mino in self.curr.minos.iter() {
+            let org = Point::new(self.curr.pos.x + mino.x, self.curr.pos.y + mino.y);
+            let pos = Point::new(org.x + offset.x, org.y + offset.y);
+
+            // Determine if the field's boundaries are respected
+            if pos.x < 0 || pos.y < 0 || (pos.x as usize) >= WIDTH || (pos.y as usize) >= HEIGHT {
+                return false;
+            }
+
+             // Determine if the current Tetromino overlaps only itself if moved
+            if self.field[pos.y as usize][pos.x as usize].is_some() && !self.overlaps_active(&pos) {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    /// Determines if an offset to the current Tetromino would cause it to 
+    /// only overlap itself or not
+    fn overlaps_active(&self, pos: &Point) -> bool {
+        for &mino in self.curr.minos.iter() {
+            if pos.x == (self.curr.pos.x + mino.x) && pos.y == (self.curr.pos.y + mino.y) {
+                return true;
+            }
+        }
+
+        false
+    }
+
+    /// Performs the actual movement
+    fn do_move(&mut self, offset: &Point) {
+        let mut minos = self.curr.minos.clone();
+
+        // Moving down or right requires us to handle the blocks in
+        // reverse order to prevent blocks from being erased
+        match (offset.x, offset.y) {
+            (RIGHT, NEUTRAL) | (NEUTRAL, DOWN) => minos.reverse(),
+            _ => { },
+        }
+
+        // Perform the move
+        for &mino in minos.iter() {
+            let org = Point::new(self.curr.pos.x + mino.x, self.curr.pos.y + mino.y);
+            let pos = Point::new(org.x + offset.x, org.y + offset.y);
+            self.field[pos.y as usize][pos.x as usize] = self.field[org.y as usize][org.x as usize];
+            self.field[org.y as usize][org.x as usize] = None;
+        }
+
+        self.curr.pos = Point::new(self.curr.pos.x + offset.x, self.curr.pos.y + offset.y);
+    }
+
+    /// Rotates the current Tetromino in a specified direction
     pub fn rotate(&mut self, dir: Direction) {
         match srs::rotate(&self.field, &self.curr, dir) {
             Some((field, rotated)) => {
