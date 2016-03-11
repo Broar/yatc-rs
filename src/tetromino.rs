@@ -2,7 +2,7 @@ extern crate rustbox;
 
 const MINOS: usize = 4;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Tetromino {
     pub minos: [Point; MINOS],
     pub pos: Point,
@@ -10,13 +10,13 @@ pub struct Tetromino {
     pub rot: Rotation,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Point {
     pub x: isize,
     pub y: isize,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum TetrominoType {
     I,
     J,
@@ -27,7 +27,7 @@ pub enum TetrominoType {
     Z,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum Rotation {
     Spawn,
     Right,
@@ -35,7 +35,7 @@ pub enum Rotation {
     Left,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum Direction {
     Clockwise,
     CounterClockwise,
