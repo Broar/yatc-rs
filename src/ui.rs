@@ -94,6 +94,12 @@ impl<'a> Ui<'a> {
 
     /// Print the next Tetromino
     pub fn print_next(&self, tetromino: Tetromino) {
+        for i in 1..self.next_piece.w {
+            for j in 1..self.next_piece.h {
+                self.next_piece.print_char(i, j, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, ' ');
+            }
+        }
+
         for &mino in tetromino.minos.iter() {
             let (rune, color) = self.get_style(&tetromino.tetro_type);
             self.next_piece.print_char((mino.x + 4) as usize, (mino.y + 2) as usize, DEFAULT_STYLE, color, DEFAULT_BG, rune);

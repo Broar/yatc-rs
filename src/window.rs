@@ -6,10 +6,10 @@ use self::rustbox::{Color, Style, RustBox};
 /// The origin of a Window is (0, 0) and is located at the top left. All
 /// drawing operations must be done relative to this coordinate position
 pub struct Window<'a> {
-    x: usize,
-    y: usize,
-    w: usize,
-    h: usize,
+    pub x: usize,
+    pub y: usize,
+    pub w: usize,
+    pub h: usize,
     rb: &'a RustBox,
 }
 
