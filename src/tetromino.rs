@@ -162,8 +162,8 @@ const J: [Tetromino; ROTS] = [
         minos: [
             Point { x: 1, y: 0 },
             Point { x: 1, y: 1 },
-            Point { x: 1, y: 2 },
             Point { x: 0, y: 2 },
+            Point { x: 1, y: 2 },
         ],
 
         pos: Point { x: 0, y: 0 },
