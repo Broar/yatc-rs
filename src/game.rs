@@ -12,7 +12,7 @@ use super::board::Board;
 use super::tetromino::Direction;
 
 const DEFAULT_TIMEOUT: u64 = 100;
-const FPS: u64 = 30;
+const FPS: u64 = 15;
 
 /// A controller between the terminal view and game state
 pub struct Game<'a> {
@@ -39,6 +39,7 @@ impl<'a> Game<'a> {
         let mut running = true;
         while running {
             running = self.handle_input();
+            self.board.tick();
             self.render();
             thread::sleep(Duration::from_millis(1000 / FPS));
         }

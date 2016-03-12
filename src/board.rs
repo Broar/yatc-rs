@@ -65,7 +65,26 @@ impl Board {
     }
 
     /// Applies gravity and clears any lines
-    pub fn tick(&self) {
+    pub fn tick(&mut self) {
+        self.apply_gravity();
+        self.clear_lines();
+    }
+
+    /// Applies gravity to the field
+    fn apply_gravity(&mut self) {
+        let offset = Point::new(NEUTRAL, DOWN);
+
+        if self.is_moveable(&offset) {
+            self.do_move(&offset);
+        }
+
+        else {
+            self.spawn();
+        }
+    }
+
+    /// Clears any lines from the field
+    fn clear_lines(&self) {
         // TODO
     }
 
