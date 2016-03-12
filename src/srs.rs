@@ -1,6 +1,6 @@
 use super::board::{Field, HEIGHT, WIDTH};
 use super::tetromino::{
-	Direction,
+    Direction,
     Point,
     Rotation, 
     Tetromino, 
@@ -35,13 +35,19 @@ fn erase(field: &mut Field, tetromino: &Tetromino) {
     }
 }
 
-/// Determines if a Tetromino is rotatable within a specified field
+/// Determines if a Tetromino is rotatable within a specified field. Returns the rotated
+/// Tetromino if the rotation is possible
 fn is_rotatable(field: &Field, tetromino: &Tetromino, dir: Direction) -> Option<Tetromino> {
     let rotated = next_rotated_tetromino(tetromino, dir);
 
     for &mino in rotated.minos.iter() {
         let pos = Point::new(tetromino.pos.x + mino.x, tetromino.pos.y + mino.y);
-        if pos.x < 0 || pos.y < 0 || pos.x as usize >= WIDTH  || pos.y as usize >= HEIGHT {
+
+        // Determine if it is possible for the rotated mino to move to the new position.
+        // If the new position is outside the bounds or is already occupied, then it is
+        // not possible and the entire rotation fails
+        if pos.x < 0 || pos.y < 0 || pos.x as usize >= WIDTH  || pos.y as usize >= HEIGHT
+                || field[pos.y as usize][pos.x as usize].is_some() {
             return None;
         }
     }
