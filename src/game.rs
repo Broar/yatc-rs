@@ -40,6 +40,13 @@ impl<'a> Game<'a> {
         while running {
             running = self.handle_input();
             self.board.tick();
+
+            // The player has lost; we will just restart the game for now
+            if self.board.is_topped_out {
+                self.board = Board::new();
+                continue;
+            }
+
             self.render();
             thread::sleep(Duration::from_millis(1000 / FPS));
         }

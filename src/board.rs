@@ -28,6 +28,7 @@ pub type Field = [[Option<TetrominoType>; WIDTH]; HEIGHT];
 /// A struct representing a 10x22 Tetris board
 pub struct Board {
     pub field: Field,
+    pub is_topped_out: bool,
     seq: [TetrominoType; TYPES],
     curr: Tetromino,
     next: usize,
@@ -55,6 +56,7 @@ impl Board {
 
         let mut board = Board {
             field: field,
+            is_topped_out: false,
             seq: seq,
             curr: Tetromino::new(SPAWN, seq[0].clone(), Rotation::Spawn),
             next: 0
@@ -200,7 +202,15 @@ impl Board {
 
         // Add the new blocks to the board
         for &mino in self.curr.minos.iter() {
-            self.field[(self.curr.pos.y + mino.y) as usize][(self.curr.pos.x + mino.x) as usize] = Some(self.curr.tetro_type);
+            let pos = Point::new(self.curr.pos.x + mino.x, self.curr.pos.y + mino.y);
+
+            // The field has been topped out and the game is over
+            if self.field[pos.y as usize][pos.x as usize].is_some() {
+                self.is_topped_out = true;
+                break;
+            }
+
+            self.field[pos.y as usize][pos.x as usize] = Some(self.curr.tetro_type);
         }
     }
 }
