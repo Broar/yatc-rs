@@ -69,7 +69,6 @@ impl Board {
     /// Applies gravity and clears any lines
     pub fn tick(&mut self) {
         self.apply_gravity();
-        self.clear_lines();
     }
 
     /// Applies gravity to the field
@@ -81,13 +80,33 @@ impl Board {
         }
 
         else {
+            self.clear_lines();
             self.spawn();
         }
     }
 
-    /// Clears any lines from the field
-    fn clear_lines(&self) {
-        // TODO
+    /// Clears any lines from the field completed by the current Tetromino
+    fn clear_lines(&mut self) {
+        for &mino in self.curr.minos.iter() {
+            let row = (self.curr.pos.y + mino.y) as usize;
+
+            if self.is_line(row) {
+                for col in 0..WIDTH {
+                    self.field[row][col] = None;
+                }
+            }
+        }
+    }
+
+    /// Determines if a specific row in the field is a complete line
+    fn is_line(&self, row: usize) -> bool {
+        for i in 0..WIDTH {
+            if self.field[row][i].is_none() {
+                return false;
+            }
+        }
+
+        true
     }
 
     /// Moves the current Tetromino to the left
