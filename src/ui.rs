@@ -6,6 +6,9 @@ use super::board::{Board, HEIGHT, WIDTH};
 use super::tetromino::{Tetromino, TetrominoType};
 use super::window::Window;
 
+// Default scaling factor for the board
+const SCALE: usize = 2;
+
 // Default values for styling terminal output
 const DEFAULT_STYLE: Style = rustbox::RB_NORMAL;
 const DEFAULT_FG: Color = Color::White;
@@ -34,11 +37,11 @@ impl<'a> Ui<'a> {
     /// Initializes a new Ui struct
     pub fn new(rb: &'a RustBox) -> Self {
         Ui {
-            board: Window::new(0, 0, 11, 21, rb),
-            score: Window::new(12, 0, 11, 2, rb),
-            level: Window::new(12, 4, 11, 2, rb),
-            lines: Window::new(12, 8, 11, 2, rb),
-            next_piece: Window::new(12, 12, 11, 6, rb)
+            board: Window::new(0, 0, (11 * SCALE) - 1, 21, rb),
+            score: Window::new(12 * SCALE, 0, 11, 2, rb),
+            level: Window::new(12 * SCALE, 4, 11, 2, rb),
+            lines: Window::new(12 * SCALE, 8, 11, 2, rb),
+            next_piece: Window::new(12 * SCALE, 12, 11, 6, rb)
         }
     }
 
@@ -70,10 +73,14 @@ impl<'a> Ui<'a> {
                     // for the Window's borders and showing only 20 rows
                     Some(ref mino) =>  {
                         let (rune, color) = self.get_style(mino);
-                        self.board.print_char(x + 1, y - 1, DEFAULT_STYLE, color, DEFAULT_BG, rune);
+                        self.board.print_char((x * SCALE) + 1, y - 1, DEFAULT_STYLE, color, DEFAULT_BG, rune);
+                        self.board.print_char((x * SCALE) + 2, y - 1, DEFAULT_STYLE, color, DEFAULT_BG, rune);
                     }
 
-                    None => self.board.print_char(x + 1, y - 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, ' '),
+                    None => {
+                        self.board.print_char((x * SCALE) + 1, y - 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, ' ');
+                        self.board.print_char((x * SCALE) + 2, y - 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, '.');
+                    },
                 }
             }
         }
