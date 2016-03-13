@@ -87,6 +87,8 @@ impl Board {
 
     /// Clears any lines from the field completed by the current Tetromino
     fn clear_lines(&mut self) {
+        let mut cleared = vec![];
+
         for &mino in self.curr.minos.iter() {
             let row = (self.curr.pos.y + mino.y) as usize;
 
@@ -94,19 +96,40 @@ impl Board {
                 for col in 0..WIDTH {
                     self.field[row][col] = None;
                 }
+
+                cleared.push(row);
             }
+        }
+
+        // Drop the rows if any line clears were made
+        if cleared.first().is_some() {
+            self.drop_rows(*cleared.first().unwrap(), cleared.len());
         }
     }
 
     /// Determines if a specific row in the field is a complete line
     fn is_line(&self, row: usize) -> bool {
-        for i in 0..WIDTH {
-            if self.field[row][i].is_none() {
+        for col in 0..WIDTH {
+            if self.field[row][col].is_none() {
                 return false;
             }
         }
 
         true
+    }
+
+    /// Drops all rows above the given start row by drop
+    fn drop_rows(&mut self, start: usize, drop: usize) {
+
+        // We must use rev() because Rust doesn't support backwards iteration
+        for row in (0..start).rev() {
+            for col in 0..WIDTH {
+                if self.field[row][col].is_some() {
+                    self.field[row + drop][col] = self.field[row][col];
+                    self.field[row][col] = None;
+                }
+            }
+        }
     }
 
     /// Moves the current Tetromino to the left
