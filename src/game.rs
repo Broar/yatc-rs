@@ -56,6 +56,9 @@ impl<'a> Game<'a> {
     fn render(&self) {
         self.ui.print_board(&self.board);
         self.ui.print_next(self.board.peek_next());
+        self.ui.print_score(self.board.score);
+        self.ui.print_level(self.board.level);
+        self.ui.print_lines(self.board.lines_cleared);
         self.rb.present();
     }
 

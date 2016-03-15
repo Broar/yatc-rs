@@ -54,11 +54,6 @@ impl<'a> Ui<'a> {
         self.level.print_borders(DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG);
         self.lines.print_borders(DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG);
         self.next_piece.print_borders(DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG);
-
-        // Print out the initial values for the player stats
-        self.print_score(0);
-        self.print_level(0);
-        self.print_lines(0);
     }
 
     /// Print the state of the board
@@ -114,17 +109,17 @@ impl<'a> Ui<'a> {
     }
 
     /// Print the player's score
-    pub fn print_score(&self, score: u32) {
-        self.score.print(1, 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, &format!("{:010}", score));
+    pub fn print_score(&self, score: usize) {
+        self.score.print(1, 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, &format!("{:}", score));
     }
 
     /// Print the difficulty level
-    pub fn print_level(&self, level: u8) {
+    pub fn print_level(&self, level: usize) {
         self.level.print(1, 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, &format!("{:}", level));
     }
 
     /// Print the number of lines cleared
-    pub fn print_lines(&self, lines: u8) {
+    pub fn print_lines(&self, lines: usize) {
         self.lines.print(1, 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, &format!("{:}", lines));
     }
 }

@@ -29,6 +29,9 @@ pub type Field = [[Option<TetrominoType>; WIDTH]; HEIGHT];
 pub struct Board {
     pub field: Field,
     pub is_topped_out: bool,
+    pub lines_cleared: usize,
+    pub score: usize,
+    pub level: usize,
     seq: [TetrominoType; TYPES],
     curr: Tetromino,
     next: usize,
@@ -57,6 +60,9 @@ impl Board {
         let mut board = Board {
             field: field,
             is_topped_out: false,
+            lines_cleared: 0,
+            score: 0,
+            level: 0,
             seq: seq,
             curr: Tetromino::new(SPAWN, seq[0].clone(), Rotation::Spawn),
             next: 0
@@ -104,6 +110,15 @@ impl Board {
         // Drop the rows if any line clears were made
         if cleared.first().is_some() {
             self.drop_rows(*cleared.first().unwrap(), cleared.len());
+
+            // Update the player's status
+            self.lines_cleared += cleared.len();
+
+            if self.lines_cleared % 10 == 0 {
+                self.level += 1;
+            }
+
+            self.score_clear(cleared.len());
         }
     }
 
@@ -129,6 +144,21 @@ impl Board {
                     self.field[row][col] = None;
                 }
             }
+        }
+    }
+
+    /// Increases the score based on the number of lines cleared
+    fn score_clear(&mut self, lines: usize) {
+
+        // The scoring formula used is identical to the NES version
+        self.score += match lines {
+            1 =>   40 * (self.level + 1),
+            2 =>  100 * (self.level + 1),
+            3 =>  300 * (self.level + 1),
+            4 => 1200 * (self.level + 1),
+
+            // 4+ lines cleared is impossible in the current system.
+            _ => 0,
         }
     }
 
