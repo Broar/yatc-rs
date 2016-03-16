@@ -106,6 +106,11 @@ impl<'a> Game<'a> {
                     Key::Char('x') => {
                         self.board.rotate(Direction::Clockwise);
                         true
+                    },
+
+                    Key::Char('c') => {
+                        self.board.drop();
+                        true
                     }
 
                     _ => true

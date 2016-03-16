@@ -178,6 +178,16 @@ impl Board {
         self.move_tetromino(DOWN);
     }
 
+    /// Continually drops the current Tetromino until it locks
+    pub fn drop(&mut self) {
+        while self.is_moveable(DOWN) {
+            self.do_move(DOWN);
+        }
+
+        self.clear_lines();
+        self.spawn();
+    }
+
     /// Moves the current Tetromino by an (x, y) offset
     fn move_tetromino(&mut self, offset: Point) {
         if self.is_moveable(offset) {
