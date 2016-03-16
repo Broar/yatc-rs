@@ -1,13 +1,15 @@
 extern crate rustbox;
 
+use std::ops::Add;
+
 const MINOS: usize = 4;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Tetromino {
-    pub minos: [Point; MINOS],
-    pub pos: Point,
-    pub tetro_type: TetrominoType,
-    pub rot: Rotation,
+    minos: [Point; MINOS],
+    origin: Point,
+    tetromino_type: TetrominoType,
+    rot: Rotation,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -35,27 +37,57 @@ pub enum Rotation {
     Left,
 }
 
-#[derive(Copy, Clone, Debug)]
-pub enum Direction {
-    Clockwise,
-    CounterClockwise,
-}
-
 impl Tetromino {
+
     /// Initializes a new Tetromino struct of a specified type and rotation
-    pub fn new(pos: Point, tetro_type: TetrominoType, rot: Rotation) -> Self {
-        let mut tetromino = TETROMINOS[tetro_type as usize][rot as usize].clone();
-        tetromino.pos = pos;
+    pub fn new(origin: Point, tetromino_type: TetrominoType, rot: Rotation) -> Self {
+        let mut tetromino = TETROMINOS[tetromino_type as usize][rot as usize].clone();
+        tetromino.origin = origin;
         tetromino
+    }
+
+    // GETTERS / SETTERS
+
+    pub fn minos(&self) -> [Point; MINOS] {
+        self.minos
+    }
+
+    pub fn origin(&self) -> Point {
+        self.origin
+    }
+
+    pub fn set_origin(&mut self, origin: Point) {
+        self.origin = origin;
+    }
+
+    pub fn tetromino_type(&self) -> TetrominoType {
+        self.tetromino_type
+    }
+
+    pub fn rot(&self) -> Rotation {
+        self.rot
     }
 }
 
 impl Point {
+    
     /// Initializes a new Point struct
     pub fn new(x: isize, y: isize) -> Self {
         Point {
             x: x,
             y: y,
+        }
+    }
+}
+
+// Overload '+' to simplify addition between Points
+impl Add for Point {
+    type Output = Point;
+
+    fn add(self, other: Point) -> Point {
+        Point {
+            x: self.x + other.x,
+            y: self.y + other.y
         }
     }
 }
@@ -73,8 +105,8 @@ const I: [Tetromino; ROTS] = [
             Point { x: 3, y: 1 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::I,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::I,
         rot: Rotation::Spawn,
     },
 
@@ -86,8 +118,8 @@ const I: [Tetromino; ROTS] = [
             Point { x: 2, y: 3 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::I,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::I,
         rot: Rotation::Right,
     },
 
@@ -99,8 +131,8 @@ const I: [Tetromino; ROTS] = [
             Point { x: 3, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::I,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::I,
         rot: Rotation::Rot2,
     },
 
@@ -112,8 +144,8 @@ const I: [Tetromino; ROTS] = [
             Point { x: 1, y: 3 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::I,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::I,
         rot: Rotation::Left,
     },
 ];
@@ -127,8 +159,8 @@ const J: [Tetromino; ROTS] = [
             Point { x: 2, y: 1 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::J,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::J,
         rot: Rotation::Spawn,
     },
 
@@ -140,8 +172,8 @@ const J: [Tetromino; ROTS] = [
             Point { x: 2, y: 0 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::J,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::J,
         rot: Rotation::Right,
     },
 
@@ -153,8 +185,8 @@ const J: [Tetromino; ROTS] = [
             Point { x: 2, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::J,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::J,
         rot: Rotation::Rot2,
     },
 
@@ -166,8 +198,8 @@ const J: [Tetromino; ROTS] = [
             Point { x: 1, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::J,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::J,
         rot: Rotation::Left,
     },
 ];
@@ -181,8 +213,8 @@ const L: [Tetromino; ROTS] = [
             Point { x: 2, y: 1 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::L,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::L,
         rot: Rotation::Spawn,
     },
 
@@ -194,8 +226,8 @@ const L: [Tetromino; ROTS] = [
             Point { x: 2, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::L,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::L,
         rot: Rotation::Right,
     },
 
@@ -207,8 +239,8 @@ const L: [Tetromino; ROTS] = [
             Point { x: 0, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::L,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::L,
         rot: Rotation::Rot2,
     },
 
@@ -220,8 +252,8 @@ const L: [Tetromino; ROTS] = [
             Point { x: 1, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::L,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::L,
         rot: Rotation::Left,
     },
 ];
@@ -235,8 +267,8 @@ const O: [Tetromino; ROTS] = [
             Point { x: 2, y: 1 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::O,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::O,
         rot: Rotation::Spawn,
     },
 
@@ -248,8 +280,8 @@ const O: [Tetromino; ROTS] = [
             Point { x: 2, y: 1 },            
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::O,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::O,
         rot: Rotation::Right,
     },
 
@@ -261,8 +293,8 @@ const O: [Tetromino; ROTS] = [
             Point { x: 2, y: 1 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::O,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::O,
         rot: Rotation::Rot2,
     },
 
@@ -274,8 +306,8 @@ const O: [Tetromino; ROTS] = [
             Point { x: 2, y: 1 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::O,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::O,
         rot: Rotation::Left,
     },
 ];
@@ -289,8 +321,8 @@ const S: [Tetromino; ROTS] = [
             Point { x: 1, y: 1 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::S,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::S,
         rot: Rotation::Spawn,
     },
 
@@ -302,8 +334,8 @@ const S: [Tetromino; ROTS] = [
             Point { x: 2, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::S,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::S,
         rot: Rotation::Right,
     },
 
@@ -315,8 +347,8 @@ const S: [Tetromino; ROTS] = [
             Point { x: 1, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::S,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::S,
         rot: Rotation::Rot2,
     },
 
@@ -328,8 +360,8 @@ const S: [Tetromino; ROTS] = [
             Point { x: 1, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::S,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::S,
         rot: Rotation::Left,
     },
 ];
@@ -343,8 +375,8 @@ const T: [Tetromino; ROTS] = [
             Point { x: 2, y: 1 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::T,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::T,
         rot: Rotation::Spawn,
     },
 
@@ -356,8 +388,8 @@ const T: [Tetromino; ROTS] = [
             Point { x: 1, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::T,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::T,
         rot: Rotation::Right,
     },
 
@@ -369,8 +401,8 @@ const T: [Tetromino; ROTS] = [
             Point { x: 1, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::T,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::T,
         rot: Rotation::Rot2,
     },
 
@@ -382,8 +414,8 @@ const T: [Tetromino; ROTS] = [
             Point { x: 1, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::T,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::T,
         rot: Rotation::Left,
     },
 ];
@@ -397,8 +429,8 @@ const Z: [Tetromino; ROTS] = [
             Point { x: 2, y: 1 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::Z,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::Z,
         rot: Rotation::Spawn,
     },
 
@@ -410,8 +442,8 @@ const Z: [Tetromino; ROTS] = [
             Point { x: 1, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::Z,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::Z,
         rot: Rotation::Right,
     },
 
@@ -423,8 +455,8 @@ const Z: [Tetromino; ROTS] = [
             Point { x: 2, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::Z,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::Z,
         rot: Rotation::Rot2,
     },
 
@@ -436,8 +468,8 @@ const Z: [Tetromino; ROTS] = [
             Point { x: 0, y: 2 },
         ],
 
-        pos: Point { x: 0, y: 0 },
-        tetro_type: TetrominoType::Z,
+        origin: Point { x: 0, y: 0 },
+        tetromino_type: TetrominoType::Z,
         rot: Rotation::Left,
     },
 ];

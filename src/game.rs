@@ -9,7 +9,7 @@ use self::rustbox::Key;
 
 use super::ui::Ui;
 use super::board::Board;
-use super::tetromino::Direction;
+use super::srs::Direction;
 
 const DEFAULT_TIMEOUT: u64 = 100;
 const FPS: u64 = 15;
@@ -42,7 +42,7 @@ impl<'a> Game<'a> {
             self.board.tick();
 
             // The player has lost; we will just restart the game for now
-            if self.board.is_topped_out {
+            if self.board.is_topped_out() {
                 self.board = Board::new();
                 continue;
             }
@@ -56,9 +56,9 @@ impl<'a> Game<'a> {
     fn render(&self) {
         self.ui.print_board(&self.board);
         self.ui.print_next(self.board.peek_next());
-        self.ui.print_score(self.board.score);
-        self.ui.print_level(self.board.level);
-        self.ui.print_lines(self.board.lines_cleared);
+        self.ui.print_score(self.board.score());
+        self.ui.print_level(self.board.level());
+        self.ui.print_lines(self.board.cleared());
         self.rb.present();
     }
 

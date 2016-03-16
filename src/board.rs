@@ -3,8 +3,8 @@ extern crate rand;
 use self::rand::{thread_rng, Rng};
 
 use super::srs;
+use super::srs::Direction;
 use super::tetromino::{
-    Direction,
     Point,
     Rotation, 
     Tetromino, 
@@ -17,34 +17,31 @@ pub const HEIGHT: usize = 22;
 
 const SPAWN: Point = Point { x: 3, y: 0 };
 
-const LEFT: isize = -1;
-const RIGHT: isize = 1;
-const UP: isize = -1;
-const DOWN: isize = 1;
-const NEUTRAL: isize = 0;
+const LEFT: Point = Point { x: -1, y: 0 };
+const RIGHT: Point = Point { x: 1, y: 0 };
+const UP: Point = Point { x: 0, y: -1 };
+const DOWN: Point = Point { x: 0, y: 1 };
 
 pub type Field = [[Option<TetrominoType>; WIDTH]; HEIGHT];
 
 /// A struct representing a 10x22 Tetris board
 pub struct Board {
-    pub field: Field,
-    pub is_topped_out: bool,
-    pub lines_cleared: usize,
-    pub score: usize,
-    pub level: usize,
-    seq: [TetrominoType; TYPES],
+    field: Field,
     curr: Tetromino,
-    next: usize,
+    next: Vec<TetrominoType>,
+    is_topped_out: bool,
+    score: usize,
+    level: usize,
+    cleared: usize,
 }
 
 impl Board {
 
     /// Initializes a new Board struct
     pub fn new() -> Self {
-        let field: Field = [[None; WIDTH]; HEIGHT];
 
         // Create a sequence of pieces and shuffle them
-        let mut seq = [
+        let mut next = vec![
             TetrominoType::I, 
             TetrominoType::J, 
             TetrominoType::L, 
@@ -55,20 +52,19 @@ impl Board {
         ];
 
         let mut rng = thread_rng();
-        rng.shuffle(&mut seq);
+        rng.shuffle(&mut next);
 
         let mut board = Board {
-            field: field,
+            field: [[None; WIDTH]; HEIGHT],
+            curr: Tetromino::new(SPAWN, next.pop().unwrap(), Rotation::Spawn),
+            next: next,
             is_topped_out: false,
-            lines_cleared: 0,
             score: 0,
+            cleared: 0,
             level: 0,
-            seq: seq,
-            curr: Tetromino::new(SPAWN, seq[0].clone(), Rotation::Spawn),
-            next: 0
         };
 
-        board.spawn();
+        board.add_current();
         board
     }
 
@@ -79,10 +75,10 @@ impl Board {
 
     /// Applies gravity to the field
     fn apply_gravity(&mut self) {
-        let offset = Point::new(NEUTRAL, DOWN);
+        let offset = DOWN;
 
-        if self.is_moveable(&offset) {
-            self.do_move(&offset);
+        if self.is_moveable(offset) {
+            self.do_move(offset);
         }
 
         else {
@@ -95,8 +91,8 @@ impl Board {
     fn clear_lines(&mut self) {
         let mut cleared = vec![];
 
-        for &mino in self.curr.minos.iter() {
-            let row = (self.curr.pos.y + mino.y) as usize;
+        for &mino in self.curr.minos().iter() {
+            let row = (self.curr.origin().y + mino.y) as usize;
 
             if self.is_line(row) {
                 for col in 0..WIDTH {
@@ -112,9 +108,9 @@ impl Board {
             self.drop_rows(*cleared.first().unwrap(), cleared.len());
 
             // Update the player's status
-            self.lines_cleared += cleared.len();
+            self.cleared += cleared.len();
 
-            if self.lines_cleared % 10 == 0 {
+            if self.cleared % 10 == 0 {
                 self.level += 1;
             }
 
@@ -164,36 +160,35 @@ impl Board {
 
     /// Moves the current Tetromino to the left
     pub fn left(&mut self) {
-        self.move_tetromino(Point::new(LEFT, NEUTRAL));
+        self.move_tetromino(LEFT);
     }
 
     /// Moves the current Tetromino to the right
     pub fn right(&mut self) {
-        self.move_tetromino(Point::new(RIGHT, NEUTRAL));
+        self.move_tetromino(RIGHT);
     }
 
     /// Moves the current Tetromino up
     pub fn up(&mut self) {
-        self.move_tetromino(Point::new(NEUTRAL, UP));
+        self.move_tetromino(UP);
     }
 
     /// Moves the current Tetromino down
     pub fn down(&mut self) {
-        self.move_tetromino(Point::new(NEUTRAL, DOWN));
+        self.move_tetromino(DOWN);
     }
 
     /// Moves the current Tetromino by an (x, y) offset
     fn move_tetromino(&mut self, offset: Point) {
-        if self.is_moveable(&offset) {
-            self.do_move(&offset);
+        if self.is_moveable(offset) {
+            self.do_move(offset);
         }
     }
 
     /// Determines if an offset to the current Tetromino is possible or not
-    fn is_moveable(&self, offset: &Point) -> bool {
-        for &mino in self.curr.minos.iter() {
-            let org = Point::new(self.curr.pos.x + mino.x, self.curr.pos.y + mino.y);
-            let pos = Point::new(org.x + offset.x, org.y + offset.y);
+    fn is_moveable(&self, offset: Point) -> bool {
+        for &mino in self.curr.minos().iter() {
+            let pos = self.curr.origin() + mino + offset;
 
             // Determine if the field's boundaries are respected
             if pos.x < 0 || pos.y < 0 || (pos.x as usize) >= WIDTH || (pos.y as usize) >= HEIGHT {
@@ -201,7 +196,7 @@ impl Board {
             }
 
              // Determine if the current Tetromino overlaps only itself if moved
-            if self.field[pos.y as usize][pos.x as usize].is_some() && !self.overlaps_active(&pos) {
+            if self.field[pos.y as usize][pos.x as usize].is_some() && !self.overlaps_active(pos) {
                 return false;
             }
         }
@@ -211,9 +206,11 @@ impl Board {
 
     /// Determines if an offset to the current Tetromino would cause it to 
     /// only overlap itself or not
-    fn overlaps_active(&self, pos: &Point) -> bool {
-        for &mino in self.curr.minos.iter() {
-            if pos.x == (self.curr.pos.x + mino.x) && pos.y == (self.curr.pos.y + mino.y) {
+    fn overlaps_active(&self, new: Point) -> bool {
+        for &mino in self.curr.minos().iter() {
+            let pos = self.curr.origin() + mino;
+
+            if new.x == pos.x && new.y == pos.y {
                 return true;
             }
         }
@@ -222,25 +219,27 @@ impl Board {
     }
 
     /// Performs the actual movement
-    fn do_move(&mut self, offset: &Point) {
-        let mut minos = self.curr.minos.clone();
+    fn do_move(&mut self, offset: Point) {
+        let mut minos = self.curr.minos().clone();
 
         // Moving down or right requires us to handle the blocks in
         // reverse order to prevent blocks from being erased
-        match (offset.x, offset.y) {
-            (RIGHT, NEUTRAL) | (NEUTRAL, DOWN) => minos.reverse(),
+        match offset {
+            RIGHT | DOWN => minos.reverse(),
             _ => { },
         }
 
         // Perform the move
         for &mino in minos.iter() {
-            let org = Point::new(self.curr.pos.x + mino.x, self.curr.pos.y + mino.y);
-            let pos = Point::new(org.x + offset.x, org.y + offset.y);
+            let org = self.curr.origin() + mino;
+            let pos = org + offset;
+
             self.field[pos.y as usize][pos.x as usize] = self.field[org.y as usize][org.x as usize];
             self.field[org.y as usize][org.x as usize] = None;
         }
 
-        self.curr.pos = Point::new(self.curr.pos.x + offset.x, self.curr.pos.y + offset.y);
+        let origin = self.curr.origin() + offset;
+        self.curr.set_origin(origin);
     }
 
     /// Rotates the current Tetromino in a specified direction
@@ -257,24 +256,37 @@ impl Board {
 
     /// Peeks at the next Tetromino
     pub fn peek_next(&self) -> Tetromino {
-        Tetromino::new(SPAWN, self.seq[self.next].clone(), Rotation::Spawn)
+        Tetromino::new(SPAWN, *self.next.last().unwrap(), Rotation::Spawn)
     }
 
     /// Spawns the next Tetromino in the sequence
     fn spawn(&mut self) {
-        self.curr = Tetromino::new(SPAWN, self.seq[self.next].clone(), Rotation::Spawn);
-        self.next = self.next + 1;
+        self.curr = Tetromino::new(SPAWN, self.next.pop().unwrap(), Rotation::Spawn);
+        self.add_current();
 
         // All of the pieces have been picked, so reshuffle them
-        if self.next % TYPES == 0 {
+        if self.next.is_empty() {
+            self.next = vec![
+                TetrominoType::I, 
+                TetrominoType::J, 
+                TetrominoType::L, 
+                TetrominoType::O, 
+                TetrominoType::S, 
+                TetrominoType::T, 
+                TetrominoType::Z,
+            ];
+
             let mut rng = thread_rng();
-            rng.shuffle(&mut self.seq);
-            self.next = 0;
+            rng.shuffle(&mut self.next);
         }
+    }
+
+    /// Adds the current Tetromino to the field
+    fn add_current(&mut self) {
 
         // Add the new blocks to the board
-        for &mino in self.curr.minos.iter() {
-            let pos = Point::new(self.curr.pos.x + mino.x, self.curr.pos.y + mino.y);
+        for &mino in self.curr.minos().iter() {
+            let pos = self.curr.origin() + mino;
 
             // The field has been topped out and the game is over
             if self.field[pos.y as usize][pos.x as usize].is_some() {
@@ -282,7 +294,29 @@ impl Board {
                 break;
             }
 
-            self.field[pos.y as usize][pos.x as usize] = Some(self.curr.tetro_type);
+            self.field[pos.y as usize][pos.x as usize] = Some(self.curr.tetromino_type());
         }
+    }
+
+    // GETTERS / SETTERS
+
+    pub fn field(&self) -> Field {
+        self.field
+    }
+
+    pub fn is_topped_out(&self) -> bool {
+        self.is_topped_out
+    }
+
+    pub fn score(&self) -> usize {
+        self.score
+    }
+
+    pub fn level(&self) -> usize {
+        self.level
+    }
+
+    pub fn cleared(&self) -> usize {
+        self.cleared
     }
 }

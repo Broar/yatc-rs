@@ -1,11 +1,16 @@
 use super::board::{Field, HEIGHT, WIDTH};
 use super::tetromino::{
-    Direction,
     Point,
     Rotation, 
     Tetromino, 
     TetrominoType,
 };
+
+#[derive(Copy, Clone, Debug)]
+pub enum Direction {
+    Clockwise,
+    CounterClockwise,
+}
 
 /// Rotates a Tetromino located inside a field in a specified direction
 pub fn rotate(field: &Field, tetromino: &Tetromino, dir: Direction) -> Option<(Field, Tetromino)> {
@@ -29,8 +34,8 @@ pub fn rotate(field: &Field, tetromino: &Tetromino, dir: Direction) -> Option<(F
 
 /// Erases a Tetromino from a field
 fn erase(field: &mut Field, tetromino: &Tetromino) {
-    for &mino in tetromino.minos.iter() {
-        let pos = Point::new(tetromino.pos.x + mino.x, tetromino.pos.y + mino.y);
+    for &mino in tetromino.minos().iter() {
+        let pos = tetromino.origin() + mino;
         field[pos.y as usize][pos.x as usize] = None;
     }
 }
@@ -40,8 +45,8 @@ fn erase(field: &mut Field, tetromino: &Tetromino) {
 fn is_rotatable(field: &Field, tetromino: &Tetromino, dir: Direction) -> Option<Tetromino> {
     let rotated = next_rotated_tetromino(tetromino, dir);
 
-    for &mino in rotated.minos.iter() {
-        let pos = Point::new(tetromino.pos.x + mino.x, tetromino.pos.y + mino.y);
+    for &mino in rotated.minos().iter() {
+        let pos = tetromino.origin() + mino;
 
         // Determine if it is possible for the rotated mino to move to the new position.
         // If the new position is outside the bounds or is already occupied, then it is
@@ -57,9 +62,9 @@ fn is_rotatable(field: &Field, tetromino: &Tetromino, dir: Direction) -> Option<
 
 /// Performs the actual rotation
 fn do_rotation(field: &mut Field, rotated: &Tetromino) {
-    for &mino in rotated.minos.iter() {
-        let pos = Point::new(rotated.pos.x + mino.x, rotated.pos.y + mino.y);
-        field[pos.y as usize][pos.x as usize] = Some(rotated.tetro_type.clone());
+    for &mino in rotated.minos().iter() {
+        let pos = rotated.origin() + mino;
+        field[pos.y as usize][pos.x as usize] = Some(rotated.tetromino_type());
     }
 }
 
@@ -67,7 +72,7 @@ fn do_rotation(field: &mut Field, rotated: &Tetromino) {
 fn next_rotated_tetromino(tetromino: &Tetromino, dir: Direction) -> Tetromino {
     let rot = match dir {
         Direction::Clockwise => {
-            match tetromino.rot {
+            match tetromino.rot() {
                 Rotation::Spawn => Rotation::Right,
                 Rotation::Right => Rotation::Rot2,
                 Rotation::Rot2  => Rotation::Left,
@@ -76,7 +81,7 @@ fn next_rotated_tetromino(tetromino: &Tetromino, dir: Direction) -> Tetromino {
         },
 
         Direction::CounterClockwise => {
-            match tetromino.rot {
+            match tetromino.rot() {
                 Rotation::Spawn => Rotation::Left,
                 Rotation::Right => Rotation::Spawn,
                 Rotation::Rot2  => Rotation::Right,
@@ -85,7 +90,7 @@ fn next_rotated_tetromino(tetromino: &Tetromino, dir: Direction) -> Tetromino {
         }
     };
 
-    Tetromino::new(tetromino.pos, tetromino.tetro_type, rot)
+    Tetromino::new(tetromino.origin(), tetromino.tetromino_type(), rot)
 }
 
 const TESTS: usize = 5;

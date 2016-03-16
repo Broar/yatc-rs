@@ -62,7 +62,7 @@ impl<'a> Ui<'a> {
         // Start at 2 because only 20 of the board's rows should be displayed
         for y in 2..HEIGHT {
             for x in 0..WIDTH {
-                match board.field[y][x] {
+                match board.field()[y][x] {
 
                     // When printing the board, offset x and y to compensate
                     // for the Window's borders and showing only 20 rows
@@ -102,8 +102,8 @@ impl<'a> Ui<'a> {
             }
         }
 
-        for &mino in tetromino.minos.iter() {
-            let (rune, color) = self.get_style(&tetromino.tetro_type);
+        for &mino in tetromino.minos().iter() {
+            let (rune, color) = self.get_style(&tetromino.tetromino_type());
             self.next_piece.print_char((mino.x + 4) as usize, (mino.y + 2) as usize, DEFAULT_STYLE, color, DEFAULT_BG, rune);
         }
     }
