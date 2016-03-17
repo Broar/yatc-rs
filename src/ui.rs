@@ -14,14 +14,14 @@ const DEFAULT_STYLE: Style = rustbox::RB_NORMAL;
 const DEFAULT_FG: Color = Color::White;
 const DEFAULT_BG: Color = Color::Black;
 
-// Default character and color pairs
-const I: (char, Color) = ('@', Color::Cyan);
-const J: (char, Color) = ('#', Color::Blue);
-const L: (char, Color) = ('&', Color::White);
-const O: (char, Color) = ('%', Color::Yellow);
-const S: (char, Color) = ('$', Color::Green);
-const T: (char, Color) = ('*', Color::Magenta);
-const Z: (char, Color) = ('O', Color::Red);
+// Default colors for Tetrominos
+const I: Color = Color::Cyan;
+const J: Color = Color::Blue;
+const L: Color = Color::White;
+const O: Color = Color::Yellow;
+const S: Color = Color::Green;
+const T: Color = Color::Magenta;
+const Z: Color = Color::Red;
 
 /// A collection of Window structs representing the user interface
 pub struct Ui<'a> {
@@ -67,9 +67,9 @@ impl<'a> Ui<'a> {
                     // When printing the board, offset x and y to compensate
                     // for the Window's borders and showing only 20 rows
                     Some(ref mino) =>  {
-                        let (rune, color) = self.get_style(mino);
-                        self.board.print_char((x * SCALE) + 1, y - 1, DEFAULT_STYLE, color, DEFAULT_BG, rune);
-                        self.board.print_char((x * SCALE) + 2, y - 1, DEFAULT_STYLE, color, DEFAULT_BG, rune);
+                        let color = self.get_tetromino_color(mino);
+                        self.board.print_char((x * SCALE) + 1, y - 1, DEFAULT_STYLE, color, DEFAULT_BG, '■');
+                        self.board.print_char((x * SCALE) + 2, y - 1, DEFAULT_STYLE, color, DEFAULT_BG, '■');
                     }
 
                     None => {
@@ -81,16 +81,16 @@ impl<'a> Ui<'a> {
         }
     }
 
-    /// Get the print style for a Mino
-    fn get_style(&self, mino: &TetrominoType) -> (char, Color) {
-        match *mino {
-            TetrominoType::I => I,
-            TetrominoType::J => J,
-            TetrominoType::L => L,
-            TetrominoType::O => O,
-            TetrominoType::S => S,
-            TetrominoType::T => T,
-            TetrominoType::Z => Z,
+    /// Get the color associated with a TetrominoType
+    fn get_tetromino_color(&self, tetromino_type: &TetrominoType) -> Color {
+        match tetromino_type {
+            &TetrominoType::I => I,
+            &TetrominoType::J => J,
+            &TetrominoType::L => L,
+            &TetrominoType::O => O,
+            &TetrominoType::S => S,
+            &TetrominoType::T => T,
+            &TetrominoType::Z => Z,
         }
     }
 
@@ -103,8 +103,8 @@ impl<'a> Ui<'a> {
         }
 
         for &mino in tetromino.minos().iter() {
-            let (rune, color) = self.get_style(&tetromino.tetromino_type());
-            self.next_piece.print_char((mino.x + 4) as usize, (mino.y + 2) as usize, DEFAULT_STYLE, color, DEFAULT_BG, rune);
+            let color = self.get_tetromino_color(&tetromino.tetromino_type());
+            self.next_piece.print_char((mino.x + 4) as usize, (mino.y + 2) as usize, DEFAULT_STYLE, color, DEFAULT_BG, '■');
         }
     }
 
