@@ -50,14 +50,53 @@ fn is_rotatable(field: &Field, tetromino: &Tetromino, dir: Direction) -> Option<
 
         // Determine if it is possible for the rotated mino to move to the new position.
         // If the new position is outside the bounds or is already occupied, then it is
-        // not possible and the entire rotation fails
-        if pos.x < 0 || pos.y < 0 || pos.x as usize >= WIDTH  || pos.y as usize >= HEIGHT
+        // not possible and we need to test for wall kicks
+        if pos.x < 0 || pos.y < 0 || pos.x as usize >= WIDTH || pos.y as usize >= HEIGHT
                 || field[pos.y as usize][pos.x as usize].is_some() {
-            return None;
+            return wall_kick(field, &rotated, dir);
         }
     }
 
     Some(rotated)
+}
+
+/// Attempts to wall kick a Tetromino
+fn wall_kick(field: &Field, tetromino: &Tetromino, dir: Direction) -> Option<Tetromino> {
+    let tests = match tetromino.tetromino_type() {
+        TetrominoType::I => WALL_KICKS_I[tetromino.rot() as usize][dir as usize].clone(),
+        _ => WALL_KICKS[tetromino.rot() as usize][dir as usize].clone(),
+    };
+
+    let mut wall_kicked: Option<Tetromino> = None;
+
+    for &test in tests.iter() {
+        match test_wall_kick(field, tetromino, test) {
+            Some(wall_kicked) => {
+                return Some(wall_kicked)
+            },
+
+            None =>  { },
+        }
+    }
+
+    None
+}
+
+/// Performs a wall kick test
+fn test_wall_kick(field: &Field, tetromino: &Tetromino, test: Point) -> Option<Tetromino> {
+     for &mino in tetromino.minos().iter() {
+        let pos = tetromino.origin() + mino + test;
+
+        if pos.x < 0 || pos.y < 0 || (pos.x as usize) >= WIDTH || (pos.y as usize) >= HEIGHT
+                || field[pos.y as usize][pos.x  as usize].is_some() {
+            return None;
+        }
+    }
+
+    let mut tetromino = tetromino.clone();
+    let new = tetromino.origin() + test;
+    tetromino.set_origin(new);
+    Some(tetromino)
 }
 
 /// Performs the actual rotation
