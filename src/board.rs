@@ -22,6 +22,9 @@ const RIGHT: Point = Point { x: 1, y: 0 };
 const UP: Point = Point { x: 0, y: -1 };
 const DOWN: Point = Point { x: 0, y: 1 };
 
+const SOFT_DROP: usize = 1;
+const HARD_DROP: usize = 2;
+
 pub type Field = [[Option<TetrominoType>; WIDTH]; HEIGHT];
 
 /// A struct representing a 10x22 Tetris board
@@ -79,6 +82,7 @@ impl Board {
 
         if self.is_moveable(offset) {
             self.do_move(offset);
+            self.score += SOFT_DROP;
         }
 
         else {
@@ -182,6 +186,7 @@ impl Board {
     pub fn drop(&mut self) {
         while self.is_moveable(DOWN) {
             self.do_move(DOWN);
+            self.score += HARD_DROP;
         }
 
         self.clear_lines();
