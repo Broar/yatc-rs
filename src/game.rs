@@ -38,7 +38,29 @@ impl<'a> Game<'a> {
 
         let mut running = true;
         while running {
-            running = self.handle_input();
+
+            // Handle the player input. Peek at events to avoid blocking
+            match self.rb.peek_event(Duration::from_millis(DEFAULT_TIMEOUT), false) {
+                Ok(rustbox::Event::KeyEvent(key)) => {
+                    match key {
+                        Key::Esc => break,
+                        Key::Left => self.board.left(),
+                        Key::Right => self.board.right(),
+                        Key::Up => self.board.up(),
+                        Key::Down => self.board.down(),
+                        Key::Char('z') => self.board.rotate(Direction::CounterClockwise),
+                        Key::Char('x') => self.board.rotate(Direction::Clockwise),
+                        Key::Char('c') => self.board.drop(),
+                        Key::Char('r') => self.board = Board::new(),
+                        _ => { }
+                    }
+                },
+
+                Err(e) => panic!("{}", e.description()),
+
+                _ => { }
+            }
+
             self.board.tick();
 
             // The player has lost; we will just restart the game for now
@@ -66,60 +88,5 @@ impl<'a> Game<'a> {
     fn setup_ui(&self) {
         self.ui.setup();
         self.rb.present();
-    }
-
-    /// Handles input events from the user, updating the game state if necessary.
-    /// Returns false if the user quits; otherwise, true
-    fn handle_input(&mut self) -> bool {
-
-        // Peek at events to avoid blocking if there is no input
-        match self.rb.peek_event(Duration::from_millis(DEFAULT_TIMEOUT), false) {
-            Ok(rustbox::Event::KeyEvent(key)) => {
-                match key {
-                    Key::Esc => false,
-
-                    Key::Left => {
-                        self.board.left(); 
-                        true 
-                    },
-
-                    Key::Right => {
-                        self.board.right();
-                        true
-                    },
-
-                    Key::Up => {
-                        self.board.up();
-                        true
-                    },
-
-                    Key::Down => {
-                        self.board.down();
-                        true
-                    },
-
-                    Key::Char('z') => {
-                        self.board.rotate(Direction::CounterClockwise);
-                        true
-                    },
-
-                    Key::Char('x') => {
-                        self.board.rotate(Direction::Clockwise);
-                        true
-                    },
-
-                    Key::Char('c') => {
-                        self.board.drop();
-                        true
-                    }
-
-                    _ => true
-                }
-            },
-
-            Err(e) => panic!("{}", e.description()),
-
-            _ => { true }
-        }
     }
 }
