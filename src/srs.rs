@@ -67,8 +67,6 @@ fn wall_kick(field: &Field, tetromino: &Tetromino, dir: Direction) -> Option<Tet
         _ => WALL_KICKS[tetromino.rot() as usize][dir as usize].clone(),
     };
 
-    let mut wall_kicked: Option<Tetromino> = None;
-
     for &test in tests.iter() {
         match test_wall_kick(field, tetromino, test) {
             Some(wall_kicked) => {

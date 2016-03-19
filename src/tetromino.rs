@@ -69,17 +69,6 @@ impl Tetromino {
     }
 }
 
-impl Point {
-    
-    /// Initializes a new Point struct
-    pub fn new(x: isize, y: isize) -> Self {
-        Point {
-            x: x,
-            y: y,
-        }
-    }
-}
-
 // Overload '+' to simplify addition between Points
 impl Add for Point {
     type Output = Point;

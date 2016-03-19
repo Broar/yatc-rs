@@ -9,7 +9,6 @@ use super::tetromino::{
     Rotation, 
     Tetromino, 
     TetrominoType, 
-    TYPES
 };
 
 pub const WIDTH: usize = 10;

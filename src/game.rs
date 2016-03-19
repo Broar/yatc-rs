@@ -36,8 +36,7 @@ impl<'a> Game<'a> {
     pub fn run(&mut self) {
         self.setup_ui();
 
-        let mut running = true;
-        while running {
+        loop {
 
             // Handle the player input. Peek at events to avoid blocking
             match self.rb.peek_event(Duration::from_millis(DEFAULT_TIMEOUT), false) {
