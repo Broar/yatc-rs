@@ -273,11 +273,14 @@ impl Board {
     /// Drops the ghost Tetromino beneath the current Tetromino
     fn drop_ghost(&mut self, erase: bool) {
 
-        // Remove the existing ghost Minos from the board if necessary
+        // Remove the existing ghost from the board
         if erase {
             for &mino in self.ghost.minos().iter() {
                 let pos = self.ghost.origin() + mino;
-                self.field[pos.y as usize][pos.x as usize] = None;
+
+                if let Some(TetrominoType::Ghost) = self.field[pos.y as usize][pos.x as usize] {
+                    self.field[pos.y as usize][pos.x as usize] = None;
+                }
             }
         }
 
@@ -289,7 +292,7 @@ impl Board {
             self.ghost.set_origin(origin);
         }
 
-        // Perform the drop
+        // Perform the ghost drop
         for &mino in self.ghost.minos().iter() {
             let pos = self.ghost.origin() + mino;
 
@@ -304,13 +307,27 @@ impl Board {
         for &mino in self.ghost.minos().iter() {
             let pos = self.ghost.origin() + mino + DOWN;
 
+            // Check that the boundary conditions are respected. We do not need
+            // to check for x-axis boundaries because a ghost is located directly
+            // underneath the current Tetromino
             if pos.y as usize >= HEIGHT {
                 return false;
             }
 
+            // Determine if acceptable overlap exists. We consider other
+            // ghosts and active Tetrominos to be acceptable for overlaps.
             match self.field[pos.y as usize][pos.x as usize] {
                 Some(TetrominoType::Ghost) | None => { }
-                Some(..) => return self.overlaps_active(pos),
+                Some(..) => {
+
+                    if self.overlaps_active(pos) {
+                        continue;
+                    }
+
+                    else {
+                        return false;
+                    }
+                },
             }
         }
 
