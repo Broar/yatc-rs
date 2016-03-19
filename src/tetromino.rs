@@ -18,7 +18,7 @@ pub struct Point {
     pub y: isize,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum TetrominoType {
     I,
     J,
@@ -27,6 +27,7 @@ pub enum TetrominoType {
     S,
     T,
     Z,
+    Ghost,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
@@ -44,6 +45,13 @@ impl Tetromino {
         let mut tetromino = TETROMINOS[tetromino_type as usize][rot as usize].clone();
         tetromino.origin = origin;
         tetromino
+    }
+
+    /// Initializes a new ghost Tetromino struct
+    pub fn new_ghost(tetromino: &Tetromino) -> Self {
+        let mut ghost = tetromino.clone();
+        ghost.tetromino_type = TetrominoType::Ghost;
+        ghost
     }
 
     // GETTERS / SETTERS

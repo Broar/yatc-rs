@@ -30,6 +30,7 @@ pub type Field = [[Option<TetrominoType>; WIDTH]; HEIGHT];
 pub struct Board {
     field: Field,
     curr: Tetromino,
+    ghost: Tetromino,
     next: Vec<TetrominoType>,
     is_topped_out: bool,
     score: usize,
@@ -56,9 +57,12 @@ impl Board {
         let mut rng = thread_rng();
         rng.shuffle(&mut next);
 
+        let tetromino = Tetromino::new(SPAWN, next.pop().unwrap(), Rotation::Spawn);
+
         let mut board = Board {
             field: [[None; WIDTH]; HEIGHT],
-            curr: Tetromino::new(SPAWN, next.pop().unwrap(), Rotation::Spawn),
+            curr: tetromino,
+            ghost: Tetromino::new_ghost(&tetromino),
             next: next,
             is_topped_out: false,
             score: 0,
@@ -67,6 +71,7 @@ impl Board {
         };
 
         board.add_current();
+        board.drop_ghost(false);
         board
     }
 
@@ -124,8 +129,9 @@ impl Board {
     /// Determines if a specific row in the field is a complete line
     fn is_line(&self, row: usize) -> bool {
         for col in 0..WIDTH {
-            if self.field[row][col].is_none() {
-                return false;
+            match self.field[row][col] {
+                Some(TetrominoType::Ghost) | None => return false,
+                _ => { },
             }
         }
 
@@ -182,7 +188,7 @@ impl Board {
     }
 
     /// Continually drops the current Tetromino until it locks
-    pub fn drop(&mut self) {
+    pub fn drop_tetromino(&mut self) {
         while self.is_moveable(DOWN) {
             self.do_move(DOWN);
             self.score += HARD_DROP;
@@ -196,6 +202,8 @@ impl Board {
     fn move_tetromino(&mut self, offset: Point) {
         if self.is_moveable(offset) {
             self.do_move(offset);
+            self.drop_ghost(true
+                );
         }
     }
 
@@ -209,9 +217,15 @@ impl Board {
                 return false;
             }
 
-             // Determine if the current Tetromino overlaps only itself if moved
+             // Determine if the current Tetromino overlaps only itself
             if self.field[pos.y as usize][pos.x as usize].is_some() && !self.overlaps_active(pos) {
-                return false;
+                if let Some(TetrominoType::Ghost) = self.field[pos.y as usize][pos.x as usize] {
+                    continue;
+                }
+
+                else {
+                    return false;
+                }
             }
         }
 
@@ -256,12 +270,60 @@ impl Board {
         self.curr.set_origin(origin);
     }
 
+    /// Drops the ghost Tetromino beneath the current Tetromino
+    fn drop_ghost(&mut self, erase: bool) {
+
+        // Remove the existing ghost Minos from the board if necessary
+        if erase {
+            for &mino in self.ghost.minos().iter() {
+                let pos = self.ghost.origin() + mino;
+                self.field[pos.y as usize][pos.x as usize] = None;
+            }
+        }
+
+        self.ghost = Tetromino::new_ghost(&self.curr);
+
+        // Determine the position that the ghost should drop down to
+        while self.is_ghost_moveable() {
+            let origin = self.ghost.origin() + DOWN;
+            self.ghost.set_origin(origin);
+        }
+
+        // Perform the drop
+        for &mino in self.ghost.minos().iter() {
+            let pos = self.ghost.origin() + mino;
+
+            if !self.overlaps_active(pos) {
+                self.field[pos.y as usize][pos.x as usize] = Some(TetrominoType::Ghost);
+            }
+        }   
+    }
+
+    /// Determines if the ghost Tetromino can be moved down
+    fn is_ghost_moveable(&self) -> bool {
+        for &mino in self.ghost.minos().iter() {
+            let pos = self.ghost.origin() + mino + DOWN;
+
+            if pos.y as usize >= HEIGHT {
+                return false;
+            }
+
+            match self.field[pos.y as usize][pos.x as usize] {
+                Some(TetrominoType::Ghost) | None => { }
+                Some(..) => return self.overlaps_active(pos),
+            }
+        }
+
+        true
+    }
+
     /// Rotates the current Tetromino in a specified direction
     pub fn rotate(&mut self, dir: Direction) {
         match srs::rotate(&self.field, &self.curr, dir) {
             Some((field, rotated)) => {
                 self.field = field;
                 self.curr = rotated;
+                self.drop_ghost(true);
             },
 
             None => { },
@@ -276,6 +338,7 @@ impl Board {
     /// Spawns the next Tetromino in the sequence
     fn spawn(&mut self) {
         self.curr = Tetromino::new(SPAWN, self.next.pop().unwrap(), Rotation::Spawn);
+        self.drop_ghost(false);
         self.add_current();
 
         // All of the pieces have been picked, so reshuffle them

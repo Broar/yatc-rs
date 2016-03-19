@@ -49,7 +49,7 @@ impl<'a> Game<'a> {
                         Key::Down => self.board.down(),
                         Key::Char('z') => self.board.rotate(Direction::CounterClockwise),
                         Key::Char('x') => self.board.rotate(Direction::Clockwise),
-                        Key::Char('c') => self.board.drop(),
+                        Key::Char('c') => self.board.drop_tetromino(),
                         Key::Char('r') => self.board = Board::new(),
                         _ => { }
                     }
