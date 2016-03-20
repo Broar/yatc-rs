@@ -131,7 +131,7 @@ impl Board {
         for col in 0..WIDTH {
             match self.field[row][col] {
                 Some(TetrominoType::Ghost) | None => return false,
-                _ => { },
+                _ => continue,
             }
         }
 
@@ -141,13 +141,10 @@ impl Board {
     /// Drops all rows above the given start row by drop
     fn drop_rows(&mut self, start: usize, drop: usize) {
 
-        // We must use rev() because Rust doesn't support backwards iteration
+        // Use rev() because Rust doesn't support backwards iteration
         for row in (0..start).rev() {
             for col in 0..WIDTH {
-                if self.field[row][col].is_some() {
-                    self.field[row + drop][col] = self.field[row][col];
-                    self.field[row][col] = None;
-                }
+                self.field[row + drop][col] = self.field[row][col].take();
             }
         }
     }
@@ -202,8 +199,10 @@ impl Board {
     fn move_tetromino(&mut self, offset: Point) {
         if self.is_moveable(offset) {
             self.do_move(offset);
-            self.drop_ghost(true
-                );
+
+            if offset != DOWN {
+                self.drop_ghost(true);
+            }
         }
     }
 
@@ -217,15 +216,11 @@ impl Board {
                 return false;
             }
 
-             // Determine if the current Tetromino overlaps only itself
-            if self.field[pos.y as usize][pos.x as usize].is_some() && !self.overlaps_active(pos) {
-                if let Some(TetrominoType::Ghost) = self.field[pos.y as usize][pos.x as usize] {
-                    continue;
-                }
-
-                else {
-                    return false;
-                }
+            // Determine if the offset causes any overlap for this Mino 
+            match self.field[pos.y as usize][pos.x as usize] {
+                Some(TetrominoType::Ghost) | None => continue,
+                Some(..) if self.overlaps_active(pos) => continue,
+                _ => return false,
             }
         }
 
@@ -237,8 +232,7 @@ impl Board {
     fn overlaps_active(&self, new: Point) -> bool {
         for &mino in self.curr.minos().iter() {
             let pos = self.curr.origin() + mino;
-
-            if new.x == pos.x && new.y == pos.y {
+            if new == pos {
                 return true;
             }
         }
@@ -262,8 +256,7 @@ impl Board {
             let org = self.curr.origin() + mino;
             let pos = org + offset;
 
-            self.field[pos.y as usize][pos.x as usize] = self.field[org.y as usize][org.x as usize];
-            self.field[org.y as usize][org.x as usize] = None;
+            self.field[pos.y as usize][pos.x as usize] = self.field[org.y as usize][org.x as usize].take();
         }
 
         let origin = self.curr.origin() + offset;
@@ -314,20 +307,12 @@ impl Board {
                 return false;
             }
 
-            // Determine if acceptable overlap exists. We consider other
+            // Determine if an acceptable overlap exists. We consider other
             // ghosts and active Tetrominos to be acceptable for overlaps.
             match self.field[pos.y as usize][pos.x as usize] {
-                Some(TetrominoType::Ghost) | None => { }
-                Some(..) => {
-
-                    if self.overlaps_active(pos) {
-                        continue;
-                    }
-
-                    else {
-                        return false;
-                    }
-                },
+                Some(TetrominoType::Ghost) | None => continue,
+                Some(..) if self.overlaps_active(pos) => continue,
+                _ => return false,
             }
         }
 

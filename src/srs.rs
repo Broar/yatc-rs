@@ -22,13 +22,13 @@ pub fn rotate(field: &Field, tetromino: &Tetromino, dir: Direction) -> Option<(F
     erase(&mut field, &tetromino);
 
     // Rotate the piece if possible
-    match is_rotatable(&field, &tetromino, dir) {
-        Some(rotated) => {
-            do_rotation(&mut field, &rotated);
-            Some((field, rotated))
-        },
+    if let Some(rotated) = is_rotatable(&field, &tetromino, dir) {
+        do_rotation(&mut field, &rotated);
+        Some((field, rotated))
+    }
 
-        None => None,
+    else {
+        None
     }
 }
 
@@ -68,12 +68,8 @@ fn wall_kick(field: &Field, tetromino: &Tetromino, dir: Direction) -> Option<Tet
     };
 
     for &test in tests.iter() {
-        match test_wall_kick(field, tetromino, test) {
-            Some(wall_kicked) => {
-                return Some(wall_kicked)
-            },
-
-            None =>  { },
+        if let Some(kicked) = test_wall_kick(field, tetromino, test) {
+            return Some(kicked);
         }
     }
 

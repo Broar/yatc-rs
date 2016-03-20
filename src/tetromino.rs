@@ -12,7 +12,7 @@ pub struct Tetromino {
     rot: Rotation,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Point {
     pub x: isize,
     pub y: isize,
@@ -30,7 +30,7 @@ pub enum TetrominoType {
     Ghost,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Debug)]
 pub enum Rotation {
     Spawn,
     Right,
