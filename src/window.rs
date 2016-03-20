@@ -2,9 +2,10 @@ extern crate rustbox;
 
 use self::rustbox::{Color, Style, RustBox};
 
-/// A drawable area and element of the screen
+/// A drawable area and element of the screen.
+///
 /// The origin of a Window is (0, 0) and is located at the top left. All
-/// drawing operations must be done relative to this coordinate position
+/// drawing operations are done relative to this coordinate position
 pub struct Window<'a> {
     pub x: usize,
     pub y: usize,
@@ -26,19 +27,31 @@ impl<'a> Window<'a> {
         }
     }
 
-    /// Prints a character at an (x, y) position relative to the origin of the Window
+    /// Prints a character at an (x, y) position
     pub fn print_char(&self, x: usize, y: usize, style: Style, fg: Color, bg: Color, c: char) {
-        // x and y are unsigned, so we do not need to check for negative values
         if x <= self.w && y <= self.h {
             self.rb.print_char(self.x + x, self.y + y, style, fg, bg, c);
         }
     }
 
-    /// Prints a string at an (x, y) position relative to the origin of the Window
+    /// Prints a string at an (x, y) position
     pub fn print(&self, x: usize, y: usize, style: Style, fg: Color, bg: Color, s: &str) {
-        // x and y are unsigned, so we do not need to check for negative values
         if x + s.len() <= self.w && y <= self.h {
             self.rb.print(self.x + x, self.y + y, style, fg, bg, s);
+        }
+    }
+
+    /// Erases a character at an (x, y) position
+    pub fn erase(&self, x: usize, y: usize) {
+        self.print_char(x, y, rustbox::RB_NORMAL, Color::Black, Color::Black, ' ');
+    }
+
+    /// Erases the area of a Window
+    pub fn clear(&self) {
+        for i in 0..self.w {
+            for j in 0..self.h {
+                self.erase(i, j);
+            }
         }
     }
 

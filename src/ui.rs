@@ -20,7 +20,7 @@ pub struct Ui<'a> {
     score: Window<'a>,
     level: Window<'a>,
     lines: Window<'a>,
-    next_piece: Window<'a>,
+    next: Window<'a>,
 }
 
 impl<'a> Ui<'a> {
@@ -29,22 +29,30 @@ impl<'a> Ui<'a> {
     pub fn new(rb: &'a RustBox) -> Self {
         Ui {
             board: Window::new(0, 0, (11 * SCALE) - 1, 21, rb),
-            score: Window::new(12 * SCALE, 0, 11, 2, rb),
-            level: Window::new(12 * SCALE, 4, 11, 2, rb),
-            lines: Window::new(12 * SCALE, 8, 11, 2, rb),
-            next_piece: Window::new(12 * SCALE, 12, 11, 6, rb)
+            score: Window::new(12 * SCALE, 1, 11, 1, rb),
+            level: Window::new(12 * SCALE, 5, 11, 1, rb),
+            lines: Window::new(12 * SCALE, 9, 11, 1, rb),
+            next: Window::new(11 * SCALE, 13, 11, 6, rb),
         }
     }
 
     /// Setup the default elements of the user interface 
     pub fn setup(&self) {
-
-        // Print out the borders for the player stats
         self.board.print_borders(DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG);
-        self.score.print_borders(DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG);
-        self.level.print_borders(DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG);
-        self.lines.print_borders(DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG);
-        self.next_piece.print_borders(DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG);
+        self.print_score(0);
+        self.print_level(0);
+        self.print_lines(0);
+    }
+
+    /// Resets some of the user interface elements
+    pub fn reset(&self) {
+        self.score.clear();
+        self.level.clear();
+        self.lines.clear();
+
+        self.print_score(0);
+        self.print_level(0);
+        self.print_lines(0);
     }
 
     /// Print the state of the board
@@ -96,30 +104,27 @@ impl<'a> Ui<'a> {
 
     /// Prints the next Tetromino
     pub fn print_next(&self, tetromino: Tetromino) {
-        for i in 1..self.next_piece.w {
-            for j in 1..self.next_piece.h {
-                self.next_piece.print_char(i, j, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, ' ');
-            }
-        }
+        self.next.clear();
 
         for &mino in tetromino.minos().iter() {
             let color = self.get_tetromino_color(&tetromino.tetromino_type());
-            self.next_piece.print_char((mino.x + 4) as usize, (mino.y + 2) as usize, DEFAULT_STYLE, color, DEFAULT_BG, '■');
+            self.next.print_char(((mino.x as usize) * SCALE + 2), (mino.y + 2) as usize, DEFAULT_STYLE, color, DEFAULT_BG, '■');
+            self.next.print_char(((mino.x as usize) * SCALE + 3), (mino.y + 2) as usize, DEFAULT_STYLE, color, DEFAULT_BG, '■');
         }
     }
 
     /// Prints the player's score
     pub fn print_score(&self, score: usize) {
-        self.score.print(1, 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, &format!("{:}", score));
+        self.score.print(0, 0, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, &format!("{:}", score));
     }
 
     /// Prints the difficulty level
     pub fn print_level(&self, level: usize) {
-        self.level.print(1, 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, &format!("{:}", level));
+        self.level.print(0, 0, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, &format!("{:}", level));
     }
 
     /// Prints the number of lines cleared
     pub fn print_lines(&self, lines: usize) {
-        self.lines.print(1, 1, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, &format!("{:}", lines));
+        self.lines.print(0, 0, DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG, &format!("{:}", lines));
     }
 }

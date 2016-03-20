@@ -34,7 +34,7 @@ impl<'a> Game<'a> {
 
     /// Starts the main game loop
     pub fn run(&mut self) {
-        self.setup_ui();
+        self.ui.setup();
 
         loop {
 
@@ -50,7 +50,11 @@ impl<'a> Game<'a> {
                         Key::Char('z') => self.board.rotate(Direction::CounterClockwise),
                         Key::Char('x') => self.board.rotate(Direction::Clockwise),
                         Key::Char('c') => self.board.drop_tetromino(),
-                        Key::Char('r') => self.board = Board::new(),
+                        Key::Char('r') => {
+                            self.board = Board::new();
+                            self.ui.reset();
+                        },
+                        
                         _ => { }
                     }
                 },
@@ -65,6 +69,7 @@ impl<'a> Game<'a> {
             // The player has lost; we will just restart the game for now
             if self.board.is_topped_out() {
                 self.board = Board::new();
+                self.ui.reset();
                 continue;
             }
 
@@ -80,12 +85,6 @@ impl<'a> Game<'a> {
         self.ui.print_score(self.board.score());
         self.ui.print_level(self.board.level());
         self.ui.print_lines(self.board.cleared());
-        self.rb.present();
-    }
-
-    /// Renders the initial elements of the user interface
-    fn setup_ui(&self) {
-        self.ui.setup();
         self.rb.present();
     }
 }
