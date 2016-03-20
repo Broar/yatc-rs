@@ -30,6 +30,7 @@ pub type Field = [[Option<TetrominoType>; WIDTH]; HEIGHT];
 pub struct Board {
     field: Field,
     curr: Tetromino,
+    hold: Option<Tetromino>,
     ghost: Tetromino,
     next: Vec<TetrominoType>,
     is_topped_out: bool,
@@ -62,6 +63,7 @@ impl Board {
         let mut board = Board {
             field: [[None; WIDTH]; HEIGHT],
             curr: tetromino,
+            hold: None,
             ghost: Tetromino::new_ghost(&tetromino),
             next: next,
             is_topped_out: false,
@@ -114,14 +116,8 @@ impl Board {
         // Drop the rows if any line clears were made
         if cleared.first().is_some() {
             self.drop_rows(*cleared.first().unwrap(), cleared.len());
-
-            // Update the player's status
             self.cleared += cleared.len();
-
-            if self.cleared % 10 == 0 {
-                self.level += 1;
-            }
-
+            self.level = self.cleared / 10;
             self.score_clear(cleared.len());
         }
     }
@@ -330,6 +326,11 @@ impl Board {
 
             None => { },
         }
+    }
+
+    /// Moves the current Tetromino into hold
+    pub fn hold(&mut self) {
+        // TODO
     }
 
     /// Peeks at the next Tetromino

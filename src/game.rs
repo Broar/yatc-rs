@@ -4,6 +4,8 @@ use std::error::Error;
 use std::time::Duration;
 use std::thread;
 
+use std::sync::{Arc, Mutex};
+
 use self::rustbox::RustBox;
 use self::rustbox::Key;
 
@@ -11,14 +13,18 @@ use super::ui::Ui;
 use super::board::Board;
 use super::srs::Direction;
 
-const DEFAULT_TIMEOUT: u64 = 100;
-const FPS: u64 = 15;
+const TIMEOUT: u64 = 100;
+const FPS: u64 = 60;
+const DELAY: [u64; 20] = [ 800, 720, 630, 550, 470, 
+                           380, 300, 220, 130, 100, 
+                            80,  80,  80,  70,  70, 
+                            70,  50,  50,  50,  30, ];
 
 /// A controller between the terminal view and game state
 pub struct Game<'a> {
     rb: &'a RustBox,
     ui: Ui<'a>,
-    board: Board,
+    board: Arc<Mutex<Board>>,
 }
 
 impl<'a> Game<'a> {
@@ -28,7 +34,7 @@ impl<'a> Game<'a> {
         Game {
             rb: rb,
             ui: Ui::new(rb),
-            board: Board::new(),
+            board: Arc::new(Mutex::new(Board::new())),
         }
     }
 
@@ -36,25 +42,45 @@ impl<'a> Game<'a> {
     pub fn run(&mut self) {
         self.ui.setup();
 
+        // Spawn a thread that periodically ticks the board
+        let guard = self.board.clone();
+        let gravity = thread::spawn(move || {
+            let mut delay = DELAY[0];
+            
+            loop {
+                thread::sleep(Duration::from_millis(delay));
+
+                let mut board = guard.lock().unwrap();
+                board.tick();
+
+                if board.level() > 19 {
+                    delay = DELAY[19];
+                }
+
+                else {
+                    delay = DELAY[board.level()];
+                } 
+            }
+        });
+
+        // Main thread handles the player input and rendering
         loop {
 
+            let mut board = self.board.lock().unwrap();
+
             // Handle the player input. Peek at events to avoid blocking
-            match self.rb.peek_event(Duration::from_millis(DEFAULT_TIMEOUT), false) {
+            match self.rb.peek_event(Duration::from_millis(TIMEOUT), false) {
                 Ok(rustbox::Event::KeyEvent(key)) => {
                     match key {
-                        Key::Esc => break,
-                        Key::Left => self.board.left(),
-                        Key::Right => self.board.right(),
-                        Key::Up => self.board.up(),
-                        Key::Down => self.board.down(),
-                        Key::Char('z') => self.board.rotate(Direction::CounterClockwise),
-                        Key::Char('x') => self.board.rotate(Direction::Clockwise),
-                        Key::Char('c') => self.board.drop_tetromino(),
-                        Key::Char('r') => {
-                            self.board = Board::new();
-                            self.ui.reset();
-                        },
-                        
+                        Key::Esc       => break,
+                        Key::Left      => board.left(),
+                        Key::Right     => board.right(),
+                        Key::Up        => board.up(),
+                        Key::Down      => board.down(),
+                        Key::Char('z') => board.rotate(Direction::CounterClockwise),
+                        Key::Char('x') => board.rotate(Direction::Clockwise),
+                        Key::Char('c') => board.drop_tetromino(),
+                        Key::Char(' ') => board.hold(),
                         _ => { }
                     }
                 },
@@ -64,27 +90,20 @@ impl<'a> Game<'a> {
                 _ => { }
             }
 
-            self.board.tick();
-
-            // The player has lost; we will just restart the game for now
-            if self.board.is_topped_out() {
-                self.board = Board::new();
-                self.ui.reset();
-                continue;
-            }
-
-            self.render();
+            self.render(&board);
             thread::sleep(Duration::from_millis(1000 / FPS));
         }
+
+        gravity.join();
     }
 
     /// Renders the game state and board to the terminal
-    fn render(&self) {
-        self.ui.print_board(&self.board);
-        self.ui.print_next(self.board.peek_next());
-        self.ui.print_score(self.board.score());
-        self.ui.print_level(self.board.level());
-        self.ui.print_lines(self.board.cleared());
+    fn render(&self, board: &Board) {
+        self.ui.print_board(board);
+        self.ui.print_next(board.peek_next());
+        self.ui.print_score(board.score());
+        self.ui.print_level(board.level());
+        self.ui.print_lines(board.cleared());
         self.rb.present();
     }
-}
+ }
