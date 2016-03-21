@@ -173,11 +173,6 @@ impl Board {
         self.move_tetromino(RIGHT);
     }
 
-    /// Moves the current Tetromino up
-    pub fn up(&mut self) {
-        self.move_tetromino(UP);
-    }
-
     /// Moves the current Tetromino down
     pub fn down(&mut self) {
         self.move_tetromino(DOWN);

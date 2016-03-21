@@ -46,7 +46,7 @@ impl<'a> Game<'a> {
         let guard = self.board.clone();
         let gravity = thread::spawn(move || {
             let mut delay = DELAY[0];
-            
+
             loop {
                 thread::sleep(Duration::from_millis(delay));
 
@@ -75,7 +75,6 @@ impl<'a> Game<'a> {
                         Key::Esc       => break,
                         Key::Left      => board.left(),
                         Key::Right     => board.right(),
-                        Key::Up        => board.up(),
                         Key::Down      => board.down(),
                         Key::Char('z') => board.rotate(Direction::CounterClockwise),
                         Key::Char('x') => board.rotate(Direction::Clockwise),
