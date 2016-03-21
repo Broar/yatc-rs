@@ -31,6 +31,7 @@ pub struct Board {
     field: Field,
     curr: Tetromino,
     hold: Option<Tetromino>,
+    is_hold_locked: bool,
     ghost: Tetromino,
     next: Vec<TetrominoType>,
     is_topped_out: bool,
@@ -64,6 +65,7 @@ impl Board {
             field: [[None; WIDTH]; HEIGHT],
             curr: tetromino,
             hold: None,
+            is_hold_locked: false,
             ghost: Tetromino::new_ghost(&tetromino),
             next: next,
             is_topped_out: false,
@@ -92,6 +94,7 @@ impl Board {
         }
 
         else {
+            self.is_hold_locked = false;
             self.clear_lines();
             self.spawn();
         }
@@ -187,6 +190,7 @@ impl Board {
             self.score += HARD_DROP;
         }
 
+        self.is_hold_locked = false;
         self.clear_lines();
         self.spawn();
     }
@@ -317,20 +321,48 @@ impl Board {
 
     /// Rotates the current Tetromino in a specified direction
     pub fn rotate(&mut self, dir: Direction) {
-        match srs::rotate(&self.field, &self.curr, dir) {
-            Some((field, rotated)) => {
-                self.field = field;
-                self.curr = rotated;
-                self.drop_ghost(true);
-            },
-
-            None => { },
+        if let Some((field, rotated)) = srs::rotate(&self.field, &self.curr, dir) {
+            self.field = field;
+            self.curr = rotated;
+            self.drop_ghost(true);
         }
     }
 
     /// Moves the current Tetromino into hold
     pub fn hold(&mut self) {
-        // TODO
+        if !self.is_hold_locked {
+            let curr = self.curr.clone();
+            let ghost = self.ghost.clone();
+
+            self.remove(curr);
+            self.remove(ghost);
+            
+            self.curr.set_origin(SPAWN);
+
+            if let Some(hold) = self.hold {
+                let temp = Some(self.curr.clone());
+                self.curr = hold;
+                self.hold = temp;
+
+                self.add_current();
+                self.drop_ghost(false);
+            }
+
+            else {
+                self.hold = Some(self.curr.clone());
+                self.spawn();
+            }
+
+            self.is_hold_locked = true;
+        } 
+    }
+
+    // Remove a Tetromino from the field
+    fn remove(&mut self, tetromino: Tetromino) {
+        for &mino in tetromino.minos().iter() {
+            let pos = tetromino.origin() + mino;
+            self.field[pos.y as usize][pos.x as usize] = None;
+        }
     }
 
     /// Peeks at the next Tetromino

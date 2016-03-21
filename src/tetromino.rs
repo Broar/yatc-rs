@@ -75,6 +75,10 @@ impl Tetromino {
     pub fn rot(&self) -> Rotation {
         self.rot
     }
+
+    pub fn set_rot(&mut self, rot: Rotation) {
+        self.rot = rot;
+    }
 }
 
 // Overload '+' to simplify addition between Points
