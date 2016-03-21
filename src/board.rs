@@ -18,7 +18,6 @@ const SPAWN: Point = Point { x: 3, y: 0 };
 
 const LEFT: Point = Point { x: -1, y: 0 };
 const RIGHT: Point = Point { x: 1, y: 0 };
-const UP: Point = Point { x: 0, y: -1 };
 const DOWN: Point = Point { x: 0, y: 1 };
 
 const SOFT_DROP: usize = 1;

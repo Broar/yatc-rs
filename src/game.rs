@@ -2,6 +2,7 @@ extern crate rustbox;
 
 use std::error::Error;
 use std::time::Duration;
+use std::sync::mpsc;
 use std::thread;
 
 use std::sync::{Arc, Mutex};
@@ -42,24 +43,28 @@ impl<'a> Game<'a> {
     pub fn run(&mut self) {
         self.ui.setup();
 
+        // Create a channel to communicate to from the main thread to 
+        // the gravity thread about whether the game has ended
+        let (send, recv) = mpsc::channel();
+
         // Spawn a thread that periodically ticks the board
         let guard = self.board.clone();
         let gravity = thread::spawn(move || {
             let mut delay = DELAY[0];
 
             loop {
+
+                // Check for a message from the main thread and handle it
+                if let Ok(true) = recv.try_recv() {
+                    break;
+                }
+
                 thread::sleep(Duration::from_millis(delay));
 
                 let mut board = guard.lock().unwrap();
                 board.tick();
-
-                if board.level() > 19 {
-                    delay = DELAY[19];
-                }
-
-                else {
-                    delay = DELAY[board.level()];
-                } 
+                
+                delay = if board.level() <= 19 { DELAY[board.level()] } else { DELAY[19] };
             }
         });
 
@@ -72,7 +77,12 @@ impl<'a> Game<'a> {
             match self.rb.peek_event(Duration::from_millis(TIMEOUT), false) {
                 Ok(rustbox::Event::KeyEvent(key)) => {
                     match key {
-                        Key::Esc       => break,
+                        Key::Esc => {
+                            // The player is quitting, so inform the gravity thread
+                            send.send(true);
+                            break;
+                        },
+
                         Key::Left      => board.left(),
                         Key::Right     => board.right(),
                         Key::Down      => board.down(),
@@ -87,6 +97,12 @@ impl<'a> Game<'a> {
                 Err(e) => panic!("{}", e.description()),
 
                 _ => { }
+            }
+
+            // The player has lost, so inform the gravity thread
+            if board.is_topped_out() {
+                send.send(true);
+                break;
             }
 
             self.render(&board);
