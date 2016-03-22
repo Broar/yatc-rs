@@ -43,7 +43,7 @@ impl<'a> Game<'a> {
     pub fn run(&mut self) {
         self.ui.setup();
 
-        // Create a channel to communicate to from the main thread to 
+        // Create a channel to communicate from the main thread to 
         // the gravity thread about whether the game has ended
         let (send, recv) = mpsc::channel();
 
@@ -63,7 +63,7 @@ impl<'a> Game<'a> {
 
                 let mut board = guard.lock().unwrap();
                 board.tick();
-                
+
                 delay = if board.level() <= 19 { DELAY[board.level()] } else { DELAY[19] };
             }
         });
@@ -90,7 +90,7 @@ impl<'a> Game<'a> {
                         Key::Char('x') => board.rotate(Direction::Clockwise),
                         Key::Char('c') => board.drop_tetromino(),
                         Key::Char(' ') => board.hold(),
-                        _ => { }
+                        _ => { },
                     }
                 },
 

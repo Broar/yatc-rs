@@ -28,17 +28,18 @@ impl<'a> Ui<'a> {
     /// Initializes a new Ui struct
     pub fn new(rb: &'a RustBox) -> Self {
         Ui {
-            board: Window::new(0, 0, (11 * SCALE) - 1, 21, rb),
-            score: Window::new(12 * SCALE, 1, 11, 1, rb),
-            level: Window::new(12 * SCALE, 5, 11, 1, rb),
-            lines: Window::new(12 * SCALE, 9, 11, 1, rb),
-            next: Window::new(11 * SCALE, 13, 11, 6, rb),
+            board: Window::new(0, 5, (11 * SCALE) - 1, 21, rb),
+            score: Window::new(12 * SCALE, 6, 11, 1, rb),
+            level: Window::new(12 * SCALE, 10, 11, 1, rb),
+            lines: Window::new(12 * SCALE, 14, 11, 1, rb),
+            next:  Window::new(5 , 1, (5 * SCALE) + 1, 4, rb),
         }
     }
 
     /// Setup the default elements of the user interface 
     pub fn setup(&self) {
         self.board.print_borders(DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG);
+        self.next.print_borders(DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG);
         self.print_score(0);
         self.print_level(0);
         self.print_lines(0);
@@ -105,11 +106,12 @@ impl<'a> Ui<'a> {
     /// Prints the next Tetromino
     pub fn print_next(&self, tetromino: Tetromino) {
         self.next.clear();
+        self.next.print_borders(DEFAULT_STYLE, DEFAULT_FG, DEFAULT_BG);
 
         for &mino in tetromino.minos().iter() {
             let color = self.get_tetromino_color(&tetromino.tetromino_type());
-            self.next.print_char(((mino.x as usize) * SCALE + 2), (mino.y + 2) as usize, DEFAULT_STYLE, color, DEFAULT_BG, '■');
-            self.next.print_char(((mino.x as usize) * SCALE + 3), (mino.y + 2) as usize, DEFAULT_STYLE, color, DEFAULT_BG, '■');
+            self.next.print_char(((mino.x as usize) * SCALE + 2), (mino.y + 1) as usize, DEFAULT_STYLE, color, DEFAULT_BG, '■');
+            self.next.print_char(((mino.x as usize) * SCALE + 3), (mino.y + 1) as usize, DEFAULT_STYLE, color, DEFAULT_BG, '■');
         }
     }
 
