@@ -89,7 +89,7 @@ impl<'a> Game<'a> {
                         Key::Char('z') => board.rotate(Direction::CounterClockwise),
                         Key::Char('x') => board.rotate(Direction::Clockwise),
                         Key::Char('c') => board.drop_tetromino(),
-                        Key::Char(' ') => board.hold(),
+                        Key::Char(' ') => board.hold_tetromino(),
                         _ => { },
                     }
                 },
@@ -116,6 +116,7 @@ impl<'a> Game<'a> {
     fn render(&self, board: &Board) {
         self.ui.print_board(board);
         self.ui.print_next(board.peek_next());
+        self.ui.print_hold(board.hold());
         self.ui.print_score(board.score());
         self.ui.print_level(board.level());
         self.ui.print_lines(board.cleared());

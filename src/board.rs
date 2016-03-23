@@ -323,7 +323,7 @@ impl Board {
     }
 
     /// Moves the current Tetromino into hold
-    pub fn hold(&mut self) {
+    pub fn hold_tetromino(&mut self) {
         if !self.is_hold_locked {
             let curr = self.curr.clone();
             let ghost = self.ghost.clone();
@@ -408,6 +408,10 @@ impl Board {
 
     pub fn field(&self) -> Field {
         self.field
+    }
+
+    pub fn hold(&self) -> Option<Tetromino> {
+        self.hold
     }
 
     pub fn is_topped_out(&self) -> bool {
